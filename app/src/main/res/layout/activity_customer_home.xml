@@ -21,7 +21,7 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/pizzabanner3"
                 android:scaleType="centerCrop"
-                android:alpha="0.6"/>
+                android:alpha="0.4"/>
             <!-- src: background image shown in the strip -->
             <!-- scaleType: makes the image cover the whole area -->
             <!-- alpha: makes the image transparent so text is visible -->
