@@ -5,6 +5,11 @@
     android:background="#FFFFFF"
     android:id="@+id/main">
 
+    <!-- Layout Summary:
+    RelativeLayout is used as the parent to allow the bottom AppBar to stick at the bottom.
+    LinearLayouts are used for arranging items horizontally or vertically (top strip, search bar, bottom AppBar).
+    FrameLayout is used for the top banner so the background image and top strip content can overlap.-->
+
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -60,7 +65,7 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_gravity="center_vertical|end"
-                    android:src="@drawable/default_profile4"
+                    android:src="@drawable/default_profile9"
                     android:background="@null"
                     android:scaleType="centerCrop"
                     android:adjustViewBounds="true"
@@ -126,6 +131,8 @@
             android:src="@drawable/ic_home2"
             android:background="@null"
             android:contentDescription="Home"/>
+        <!-- layout_weight: divides the horizontal space equally among the buttons in the bottom app bar;
+        each button takes equal space -->
 
         <ImageButton
             android:id="@+id/ordersButton"
