@@ -13,19 +13,32 @@
         android:theme="@style/Theme.PizzaManiaApp"
         tools:targetApi="31">
         <activity
+            android:name=".AccountActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EmployeeHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EmployeeOrderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CustomerOrderActivity"
+            android:exported="false" />
+        <activity
             android:name=".CustomerHomeActivity"
             android:exported="true">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-
         <activity
             android:name=".MainActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
     </application>
 
 </manifest>
