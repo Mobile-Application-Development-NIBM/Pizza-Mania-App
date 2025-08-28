@@ -119,7 +119,7 @@
         android:layout_height="60dp"
         android:orientation="horizontal"
         android:gravity="center"
-        android:background="#FFCC00"
+        android:background="#fcc43c"
         android:layout_alignParentBottom="true">
         <!-- layout_alignParentBottom: sticks this bar at the bottom of the screen -->
 
