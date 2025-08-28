@@ -119,7 +119,7 @@
         android:layout_height="60dp"
         android:orientation="horizontal"
         android:gravity="center"
-        android:background="#fcc43c"
+        android:background="#333333"
         android:layout_alignParentBottom="true">
         <!-- layout_alignParentBottom: sticks this bar at the bottom of the screen -->
 
@@ -128,7 +128,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_home2"
+            android:src="@drawable/ic_home3"
             android:background="@null"
             android:contentDescription="Home"/>
         <!-- layout_weight: divides the horizontal space equally among the buttons in the bottom app bar;
@@ -139,7 +139,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_orders3"
+            android:src="@drawable/ic_orders4"
             android:background="@null"
             android:contentDescription="Orders"/>
 
@@ -148,7 +148,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_chatbot2"
+            android:src="@drawable/ic_chatbot3"
             android:background="@null"
             android:contentDescription="Chatbot"/>
     </LinearLayout>
