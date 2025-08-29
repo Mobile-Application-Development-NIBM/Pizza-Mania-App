@@ -12,33 +12,30 @@
     <!-- Top banner -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp">
+        android:layout_height="174dp">
 
-        <!-- Background image -->
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/pizzabanner3"
+            android:alpha="0.4"
             android:scaleType="centerCrop"
-            android:alpha="0.4" />
+            android:src="@drawable/pizzabanner3" />
 
-        <!-- Banner content -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
+            android:layout_height="140dp"
             android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingStart="16dp"
-            android:paddingEnd="16dp">
+            android:paddingEnd="8dp">
 
-            <!-- App name -->
             <TextView
-                android:id="@+id/stripText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="335dp"
+                android:layout_height="69dp"
+                android:layout_gravity="center"
                 android:text="PizzaMania"
                 android:textColor="#000000"
-                android:textSize="22sp"
+                android:textSize="40sp"
                 android:textStyle="bold" />
 
             <Space
@@ -46,19 +43,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <!-- Profile picture button -->
             <ImageButton
                 android:id="@+id/profileButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/default_profile9"
-                android:background="@android:color/transparent"
-                android:scaleType="centerCrop"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/profile_button_desc"
                 android:layout_gravity="center_vertical|end"
-                android:padding="2dp"
-                android:clipToOutline="true" />
+                android:adjustViewBounds="true"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/profile_button_desc"
+                android:scaleType="centerCrop"
+                android:src="@drawable/default_profile9" />
         </LinearLayout>
     </FrameLayout>
 
@@ -81,7 +75,7 @@
                 android:id="@+id/branchIdTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Branch ID: b001"
+                android:text="Branch ID: "
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
@@ -91,7 +85,7 @@
                 android:id="@+id/orderIdTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Order ID: o001"
+                android:text="Order ID: "
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
@@ -101,7 +95,7 @@
                 android:id="@+id/userIdTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="User ID: u001"
+                android:text="User ID: "
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
@@ -111,7 +105,7 @@
                 android:id="@+id/itemTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Item: m001"
+                android:text="Item: "
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
@@ -121,7 +115,7 @@
                 android:id="@+id/totalPriceTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Total Price: 2500"
+                android:text="Total Price: "
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
@@ -131,7 +125,7 @@
                 android:id="@+id/deliveryTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Estimated Delivery: Aug 27, 2025 5:08 PM"
+                android:text="Estimated Delivery: "
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
@@ -141,7 +135,7 @@
                 android:id="@+id/statusTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Current Status: Pending"
+                android:text="Current Status: "
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#000000"
@@ -161,12 +155,12 @@
             <Button
                 android:id="@+id/updateStatusBtn"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Update Status"
-                android:backgroundTint="#FFDE21"
-                android:textColor="@android:color/black"
+                android:layout_height="63dp"
                 android:layout_marginTop="12dp"
-                android:paddingVertical="10dp" />
+                android:backgroundTint="#FFDE21"
+                android:paddingVertical="10dp"
+                android:text="Update Status"
+                android:textColor="@android:color/black" />
         </LinearLayout>
     </ScrollView>
 

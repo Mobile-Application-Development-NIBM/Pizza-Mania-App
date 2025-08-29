@@ -11,30 +11,32 @@
     <!-- Top banner -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp">
+        android:layout_height="174dp">
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/pizzabanner3"
+            android:alpha="0.4"
             android:scaleType="centerCrop"
-            android:alpha="0.4" />
+            android:src="@drawable/pizzabanner3" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="140dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="16dp"
             android:paddingEnd="8dp">
 
             <TextView
-                android:id="@+id/stripText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="248dp"
+                android:layout_height="69dp"
+                android:layout_gravity="center"
+                android:layout_marginLeft="60dp"
+                android:layout_marginTop="30dp"
                 android:text="PizzaMania"
                 android:textColor="#000000"
-                android:textSize="20sp"
+                android:textSize="40sp"
                 android:textStyle="bold" />
 
             <Space
@@ -47,11 +49,11 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_gravity="center_vertical|end"
-                android:src="@drawable/default_profile9"
-                android:background="@android:color/transparent"
-                android:scaleType="centerCrop"
                 android:adjustViewBounds="true"
-                android:contentDescription="@string/profile_button_desc" />
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/profile_button_desc"
+                android:scaleType="centerCrop"
+                android:src="@drawable/default_profile9" />
         </LinearLayout>
     </FrameLayout>
 
@@ -93,7 +95,7 @@
                 android:id="@+id/categoryTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Category: Pizza"
+                android:text="Category : "
                 android:textSize="18sp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
@@ -103,7 +105,7 @@
                 android:id="@+id/nameTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Name: Chicago deep-dish pizza"
+                android:text="Name :"
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:textColor="#000000"
@@ -114,7 +116,7 @@
                 android:id="@+id/priceTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Price: 2500"
+                android:text="Price :"
                 android:textSize="18sp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
