@@ -1,10 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".EmployeeOrderActivity">
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    tools:context=".EmployeeHomeActivity">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Top banner -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+
+        <!-- Background image -->
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/pizzabanner3"
+            android:scaleType="centerCrop"
+            android:alpha="0.4" />
+
+        <!-- Banner content -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <!-- App name -->
+            <TextView
+                android:id="@+id/stripText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PizzaMania"
+                android:textColor="#000000"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <!-- Profile picture button -->
+            <ImageButton
+                android:id="@+id/profileButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/default_profile9"
+                android:background="@android:color/transparent"
+                android:scaleType="centerCrop"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/profile_button_desc"
+                android:layout_gravity="center_vertical|end"
+                android:padding="2dp"
+                android:clipToOutline="true" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Order Details Section -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:divider="?android:attr/dividerHorizontal"
+            android:showDividers="middle"
+            android:dividerPadding="12dp">
+
+            <TextView
+                android:id="@+id/branchIdTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Branch ID: b001"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:paddingVertical="6dp"
+                android:paddingStart="8dp" />
+
+            <TextView
+                android:id="@+id/orderIdTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Order ID: o001"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:paddingVertical="6dp"
+                android:paddingStart="8dp" />
+
+            <TextView
+                android:id="@+id/userIdTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="User ID: u001"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:paddingVertical="6dp"
+                android:paddingStart="8dp" />
+
+            <TextView
+                android:id="@+id/itemTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Item: m001"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:paddingVertical="6dp"
+                android:paddingStart="8dp" />
+
+            <TextView
+                android:id="@+id/totalPriceTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total Price: 2500"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:paddingVertical="6dp"
+                android:paddingStart="8dp" />
+
+            <TextView
+                android:id="@+id/deliveryTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Estimated Delivery: Aug 27, 2025 5:08 PM"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:paddingVertical="6dp"
+                android:paddingStart="8dp" />
+
+            <TextView
+                android:id="@+id/statusTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Current Status: Pending"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:paddingVertical="6dp"
+                android:paddingStart="8dp" />
+
+            <!-- Status dropdown -->
+            <Spinner
+                android:id="@+id/statusSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:entries="@array/status_array"
+                android:padding="8dp"
+                android:layout_marginTop="8dp" />
+
+            <!-- Update button -->
+            <Button
+                android:id="@+id/updateStatusBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Update Status"
+                android:backgroundTint="#FFDE21"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="12dp"
+                android:paddingVertical="10dp" />
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
