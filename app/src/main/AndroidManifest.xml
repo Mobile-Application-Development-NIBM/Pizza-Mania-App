@@ -13,8 +13,17 @@
         android:theme="@style/Theme.PizzaManiaApp"
         tools:targetApi="31">
         <activity
-            android:name=".AdminBranchEmployeeManagementActivity"
+            android:name=".LoginActivity"
             android:exported="false" />
+        <activity
+            android:name=".AdminBranchEmployeeManagementActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".AccountActivity"
             android:exported="false" />
@@ -44,12 +53,7 @@
             android:exported="false" />
         <activity
             android:name=".CustomerHomeActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:exported="false">
         </activity>
         <activity
             android:name=".MainActivity"

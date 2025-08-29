@@ -35,12 +35,20 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    //Firebase
+    // Firebase
     implementation("com.google.firebase:firebase-auth:22.3.0")
-    implementation("com.google.firebase:firebase-firestore:24.10.0")
+
+    // ❌ REMOVE Firestore since you won't use it anymore
+    // implementation("com.google.firebase:firebase-firestore:24.10.0")
+
+    // ✅ Keep storage only if your app uses file/image upload
     implementation("com.google.firebase:firebase-storage:20.3.0")
+
+    // ✅ Add Realtime Database
+    implementation("com.google.firebase:firebase-database:20.3.1")
 }

@@ -1,0 +1,44 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <!-- Main container for employee items -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        android:gravity="center_vertical">
+        <!-- Horizontal layout: employee name + edit/delete buttons -->
+
+        <TextView
+            android:id="@+id/employeeName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Employee Name"
+            android:textSize="16sp"
+            android:textColor="#000000"/>
+        <!-- Employee name text, takes remaining space on the left -->
+
+        <ImageButton
+            android:id="@+id/editEmployeeBtn"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_edit"
+            android:background="@null"
+            android:layout_marginStart="8dp"/>
+        <!-- Edit button for the employee -->
+
+        <ImageButton
+            android:id="@+id/deleteEmployeeBtn"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_delete"
+            android:background="@null"
+            android:layout_marginStart="8dp"/>
+        <!-- Delete button for the employee -->
+    </LinearLayout>
+
+</LinearLayout>
