@@ -70,7 +70,8 @@
             android:orientation="vertical"
             android:divider="?android:attr/dividerHorizontal"
             android:showDividers="middle"
-            android:dividerPadding="12dp">
+            android:dividerPadding="12dp"
+            android:background="@drawable/glass_bg">
 
             <!-- Availability -->
             <TextView
@@ -78,7 +79,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Available:"
-                android:textSize="18sp"
+                android:textSize="18dp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
                 android:paddingStart="8dp" />
@@ -89,17 +90,18 @@
                 android:layout_height="wrap_content"
                 android:entries="@array/availability_array"
                 android:padding="8dp"
-                android:layout_marginTop="4dp" />
+                android:layout_marginTop="20dp" />
 
             <TextView
                 android:id="@+id/categoryTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Category : "
-                android:textSize="18sp"
+                android:textSize="18dp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
-                android:paddingStart="8dp" />
+                android:paddingStart="8dp"
+                android:layout_marginTop="20dp"/>
 
             <TextView
                 android:id="@+id/nameTxt"
@@ -107,20 +109,22 @@
                 android:layout_height="wrap_content"
                 android:text="Name :"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="18dp"
                 android:textColor="#000000"
                 android:paddingVertical="6dp"
-                android:paddingStart="8dp" />
+                android:paddingStart="8dp"
+                android:layout_marginTop="20dp" />
 
             <TextView
                 android:id="@+id/priceTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Price :"
-                android:textSize="18sp"
+                android:textSize="18dp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
-                android:paddingStart="8dp" />
+                android:paddingStart="8dp"
+                android:layout_marginTop="20dp"/>
 
             <!-- Update button -->
             <Button
@@ -130,8 +134,8 @@
                 android:text="Update Availability"
                 android:backgroundTint="#FFDE21"
                 android:textColor="@android:color/black"
-                android:layout_marginTop="12dp"
-                android:paddingVertical="10dp" />
+                android:layout_marginTop="20dp"
+                android:paddingVertical="10dp"/>
 
         </LinearLayout>
     </ScrollView>
