@@ -156,6 +156,7 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
         }
 
         // get input fields and buttons from popup
+        TextView popupTitle = popupView.findViewById(R.id.popupTitleBranch); // NEW: title TextView
         EditText branchIdInput = popupView.findViewById(R.id.branchIdInput);
         EditText branchNameInput = popupView.findViewById(R.id.branchNameInput);
         EditText contactInput = popupView.findViewById(R.id.contactInput);
@@ -163,6 +164,10 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
         Button addBtn = popupView.findViewById(R.id.addBtn);
         Button cancelBtn = popupView.findViewById(R.id.cancelBtn);
         cancelBtn.setOnClickListener(v -> dialog.dismiss()); // close popup on cancel
+
+        // set popup title
+        if(existingBranch != null) popupTitle.setText("Edit Branch"); // editing
+        else popupTitle.setText("Add New Branch"); // adding new
 
         // if editing existing branch, populate fields
         if (existingBranch != null) {
@@ -347,6 +352,9 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
             window.setLayout((int)(getResources().getDisplayMetrics().widthPixels*0.8), WindowManager.LayoutParams.WRAP_CONTENT); // set width to 80% of screen
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // transparent background
         }
+
+        TextView popupTitle = popupView.findViewById(R.id.popupTitleEmployee); // NEW: title TextView
+        popupTitle.setText("Edit Employee"); // set title for editing employee
 
         EditText empIdInput = popupView.findViewById(R.id.employeeIDInput); // employee ID input field
         EditText userIdInput = popupView.findViewById(R.id.userIDInput); // user ID input field
