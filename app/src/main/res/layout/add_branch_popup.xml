@@ -24,6 +24,15 @@
             android:layout_gravity="center"/>
         <!-- TextView: popup title -->
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Branch ID"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Branch ID -->
+
         <EditText
             android:id="@+id/branchIdInput"
             android:layout_width="match_parent"
@@ -33,9 +42,18 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="3dp"
             android:enabled="false"/>
         <!-- EditText: shows branch ID, auto-generated, disabled for editing -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Branch Name"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Branch Name -->
 
         <EditText
             android:id="@+id/branchNameInput"
@@ -46,8 +64,17 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="3dp"/>
         <!-- EditText: user enters branch name -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Contact Number"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Contact Number -->
 
         <EditText
             android:id="@+id/contactInput"
@@ -58,8 +85,17 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="3dp"/>
         <!-- EditText: user enters contact number for branch -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Location -->
 
         <EditText
             android:id="@+id/locationInput"
@@ -70,7 +106,7 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="3dp"/>
         <!-- EditText: user enters branch coordinates as "lat, long" -->
 
         <LinearLayout
@@ -102,4 +138,3 @@
         </LinearLayout>
     </LinearLayout>
 </RelativeLayout>
-

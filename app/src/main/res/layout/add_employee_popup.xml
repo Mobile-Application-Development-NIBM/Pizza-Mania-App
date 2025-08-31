@@ -24,6 +24,15 @@
             android:layout_gravity="center"/>
         <!-- TextView: popup title -->
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Employee ID"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Employee ID -->
+
         <EditText
             android:id="@+id/employeeIDInput"
             android:layout_width="match_parent"
@@ -33,9 +42,18 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="3dp"
             android:enabled="false"/>
         <!-- EditText: shows auto-generated employee ID, user cannot edit -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="User ID"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: User ID -->
 
         <EditText
             android:id="@+id/userIDInput"
@@ -46,9 +64,18 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="3dp"
             android:enabled="false"/>
         <!-- EditText: shows auto-generated user ID, user cannot edit -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Name -->
 
         <EditText
             android:id="@+id/employeeNameInput"
@@ -59,8 +86,17 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="3dp"/>
         <!-- EditText: input for employee full name -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Email -->
 
         <EditText
             android:id="@+id/employeeEmailInput"
@@ -71,8 +107,17 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="3dp"/>
         <!-- EditText: input for employee email -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Contact Number"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Contact Number -->
 
         <EditText
             android:id="@+id/employeeContactInput"
@@ -83,8 +128,17 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="3dp"/>
         <!-- EditText: input for phone number -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Address"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Address -->
 
         <EditText
             android:id="@+id/employeeAddressInput"
@@ -95,7 +149,7 @@
             android:backgroundTint="#fcc43c"
             android:textColor="#000000"
             android:textColorHint="#666666"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="3dp"/>
         <!-- EditText: input for employee address -->
 
         <LinearLayout
