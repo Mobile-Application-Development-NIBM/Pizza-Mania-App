@@ -18,7 +18,7 @@
             android:layout_height="match_parent"
             android:src="@drawable/pizzabanner3"
             android:scaleType="centerCrop"
-            android:alpha="0.4"/>
+            android:alpha="0.3"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -66,24 +66,24 @@
         android:padding="24dp"
         android:layout_below="@id/welcomeText"
         android:layout_margin="24dp"
-        android:background="@drawable/card_background">
+        android:background="@drawable/glass_bg">
 
-        <!-- Username -->
+        <!-- Email -->
         <EditText
-            android:id="@+id/usernameInput"
+            android:id="@+id/Email"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:hint="Username"
+            android:hint="Email"
             android:padding="12dp"
             android:background="@drawable/search_box_border"
             android:textColor="#000000"
             android:textSize="16sp"
-            android:inputType="textPersonName"
+            android:inputType="textEmailAddress"
             android:layout_marginBottom="16dp"/>
 
         <!-- Password -->
         <EditText
-            android:id="@+id/passwordInput"
+            android:id="@+id/password"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:hint="Password"
@@ -100,14 +100,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Forgot Password?"
-            android:textColor="#FFCC00"
+            android:textColor="#b38f00 "
             android:textSize="14sp"
             android:layout_gravity="end"
             android:layout_marginBottom="20dp"/>
 
         <!-- Login button -->
         <Button
-            android:id="@+id/loginButton"
+            android:id="@+id/loginBtn"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:text="Login"
