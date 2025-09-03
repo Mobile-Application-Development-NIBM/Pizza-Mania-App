@@ -8,10 +8,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-//Firebase
-import com.google.firebase.firestore.FirebaseFirestore;
-import java.util.HashMap;
-
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -24,20 +20,5 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        HashMap<String, Object> testData = new HashMap<>();
-        testData.put("message", "Firebase is working!");
-        testData.put("timestamp", System.currentTimeMillis());
-
-        db.collection("testCollection")
-                .add(testData)
-                .addOnSuccessListener(documentReference -> {
-                    System.out.println("✅ Data added successfully!");
-                })
-                .addOnFailureListener(e -> {
-                    System.out.println("❌ Error: " + e.getMessage());
-                });
     }
 }

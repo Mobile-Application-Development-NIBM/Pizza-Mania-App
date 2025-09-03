@@ -1,0 +1,11 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <!-- Frosted glass effect -->
+    <gradient
+        android:startColor="#F0F0F0"
+        android:endColor="#E0E0E0"
+        android:angle="270"/>
+    <corners android:radius="20dp"/>
+    <stroke
+        android:width="2dp"
+        android:color="#CCCCCC"/>
+</shape>

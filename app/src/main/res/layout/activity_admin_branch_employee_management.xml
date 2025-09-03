@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+    <!-- RelativeLayout: main container of the page -->
+
+    <TextView
+        android:id="@+id/pageTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Branch and\nEmployee Management"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:textColor="#000000"
+        android:gravity="center"/>
+    <!-- TextView: page title at top, can show 2 lines -->
+
+    <ImageButton
+        android:id="@+id/addBranchBtn"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_plus2"
+        android:background="@drawable/button_border"
+        android:contentDescription="Add Branch"
+        android:layout_below="@id/pageTitle"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"/>
+    <!-- ImageButton: + button to add new branch -->
+    <!-- layout_alignParentEnd: aligns button to right edge of screen -->
+
+    <ScrollView
+        android:id="@+id/branchScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/addBranchBtn"
+        android:layout_above="@id/bottomAppBar"
+        android:layout_marginTop="16dp">
+        <!-- ScrollView: makes branch list scrollable -->
+
+        <LinearLayout
+            android:id="@+id/branchList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+        </LinearLayout>
+        <!-- LinearLayout: container where branch items are added dynamically -->
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#333333"
+        android:layout_alignParentBottom="true">
+        <!-- LinearLayout: bottom navigation bar fixed at screen bottom -->
+
+        <ImageButton
+            android:id="@+id/homeButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_home3"
+            android:background="@null"
+            android:contentDescription="Home"/>
+        <!-- ImageButton: home button on left side, stretches evenly with weight -->
+
+        <ImageButton
+            android:id="@+id/branchPageButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_management13"
+            android:background="@null"
+            android:contentDescription="Branch Page"/>
+        <!-- ImageButton: branch page button on right side, stretches evenly with weight -->
+    </LinearLayout>
+
+</RelativeLayout>
+

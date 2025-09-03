@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="20dp"
+    android:background="@drawable/glass_bg">
+    <!-- RelativeLayout: main popup container -->
+    <!-- background: glass-style background image -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+        <!-- LinearLayout: vertical layout to stack all input fields and buttons -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/popupTitleEmployee"
+            android:text="Add New Employee"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#e6b33c"
+            android:layout_gravity="center"/>
+        <!-- TextView: popup title -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Employee ID"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Employee ID -->
+
+        <EditText
+            android:id="@+id/employeeIDInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Employee ID (auto)"
+            android:inputType="text"
+            android:backgroundTint="#fcc43c"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"
+            android:enabled="false"/>
+        <!-- EditText: shows auto-generated employee ID, user cannot edit -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="User ID"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: User ID -->
+
+        <EditText
+            android:id="@+id/userIDInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="User ID (auto)"
+            android:inputType="text"
+            android:backgroundTint="#fcc43c"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"
+            android:enabled="false"/>
+        <!-- EditText: shows auto-generated user ID, user cannot edit -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Name -->
+
+        <EditText
+            android:id="@+id/employeeNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name"
+            android:inputType="text"
+            android:backgroundTint="#fcc43c"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for employee full name -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Email -->
+
+        <EditText
+            android:id="@+id/employeeEmailInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:backgroundTint="#fcc43c"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for employee email -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Contact Number"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Contact Number -->
+
+        <EditText
+            android:id="@+id/employeeContactInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Contact Number"
+            android:inputType="number"
+            android:backgroundTint="#fcc43c"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for phone number -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Address"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Address -->
+
+        <EditText
+            android:id="@+id/employeeAddressInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Address"
+            android:inputType="textPostalAddress"
+            android:backgroundTint="#fcc43c"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for employee address -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="15dp">
+            <!-- LinearLayout: holds Cancel and Save buttons side by side -->
+
+            <Button
+                android:id="@+id/cancelEmployeeBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancel"
+                android:textColor="#fcc43c"
+                android:backgroundTint="#FFFFFF"/>
+            <!-- Button: cancels the popup without saving -->
+
+            <Button
+                android:id="@+id/addEmployeeBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save"
+                android:layout_marginStart="10dp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#fcc43c"/>
+            <!-- Button: saves the employee info to database -->
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>
