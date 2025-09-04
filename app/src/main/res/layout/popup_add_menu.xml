@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ScrollView: makes popup scrollable if content exceeds screen -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <!-- fillViewport="true": ensures child layout fills screen height -->
+
+    <!-- RelativeLayout: container with glass-style background -->
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:background="@drawable/glass_bg">
+
+        <!-- LinearLayout: root vertical container for popup content -->
+        <LinearLayout
+            android:id="@+id/menuPopupRoot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- Title of popup -->
+            <TextView
+                android:id="@+id/popupTitleMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add New Menu Item"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:layout_gravity="center"/>
+
+            <!-- ================= Menu ID ================= -->
+            <!-- Label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Menu ID"
+                android:textColor="#000000"
+                android:layout_marginTop="10dp"/>
+            <!-- Disabled input (auto-generated ID) -->
+            <EditText
+                android:id="@+id/menuIdInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Menu ID (auto)"
+                android:backgroundTint="#111111"
+                android:textColor="#000000"
+                android:textColorHint="#666666"
+                android:layout_marginTop="3dp"
+                android:enabled="false"/>
+
+            <!-- ================= Name ================= -->
+            <!-- Label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Name"
+                android:textColor="#000000"
+                android:layout_marginTop="10dp"/>
+            <!-- Input for menu name -->
+            <EditText
+                android:id="@+id/menuNameInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Menu Name"
+                android:backgroundTint="#111111"
+                android:textColor="#000000"
+                android:textColorHint="#666666"
+                android:layout_marginTop="3dp"/>
+
+            <!-- ================= Category ================= -->
+            <!-- Label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Category"
+                android:textColor="#000000"
+                android:layout_marginTop="10dp"/>
+            <!-- Input for menu category -->
+            <EditText
+                android:id="@+id/menuCategoryInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Category (Pizza/Burger/etc)"
+                android:backgroundTint="#111111"
+                android:textColor="#000000"
+                android:textColorHint="#666666"
+                android:layout_marginTop="3dp"/>
+
+            <!-- ================= Description ================= -->
+            <!-- Label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Description"
+                android:textColor="#000000"
+                android:layout_marginTop="10dp"/>
+            <!-- Multiline description box -->
+            <EditText
+                android:id="@+id/menuDescriptionInput"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:hint="Description"
+                android:backgroundTint="#111111"
+                android:textColor="#000000"
+                android:textColorHint="#666666"
+                android:layout_marginTop="3dp"
+                android:gravity="top"
+                android:inputType="textMultiLine"/>
+
+            <!-- ================= Price ================= -->
+            <!-- Label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Price"
+                android:textColor="#000000"
+                android:layout_marginTop="10dp"/>
+            <!-- Input for price -->
+            <EditText
+                android:id="@+id/menuPriceInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Price"
+                android:inputType="number"
+                android:backgroundTint="#111111"
+                android:textColor="#000000"
+                android:textColorHint="#666666"
+                android:layout_marginTop="3dp"/>
+
+            <!-- ================= Image URL ================= -->
+            <!-- Label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Image URL"
+                android:textColor="#000000"
+                android:layout_marginTop="10dp"/>
+            <!-- Input for image URL -->
+            <EditText
+                android:id="@+id/menuImageInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Image URL"
+                android:inputType="textUri"
+                android:backgroundTint="#111111"
+                android:textColor="#000000"
+                android:textColorHint="#666666"
+                android:layout_marginTop="3dp"/>
+
+            <!-- ================= Branches Selection ================= -->
+            <!-- Label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Branches"
+                android:textColor="#000000"
+                android:layout_marginTop="10dp"/>
+
+            <!-- ChipGroup: shows selected branches as chips -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/selectedBranchesGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                app:chipSpacing="5dp"
+                android:singleLine="false"/>
+
+            <!-- Dropdown: searchable branch selector -->
+            <AutoCompleteTextView
+                android:id="@+id/branchesDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select branch"
+                android:inputType="text"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:cursorVisible="true"
+                android:completionThreshold="1"
+                android:dropDownWidth="match_parent"
+                android:dropDownHeight="wrap_content"
+                android:backgroundTint="#111111"
+                android:textColor="#000000"
+                android:textColorHint="#666666"
+                android:layout_marginTop="5dp"/>
+
+            <!-- ================= Action Buttons ================= -->
+            <!-- Horizontal layout for Cancel & Save -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="15dp">
+
+                <!-- Cancel button -->
+                <Button
+                    android:id="@+id/cancelMenuBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cancel"
+                    android:textColor="#000000"
+                    android:backgroundTint="#FFFFFF"/>
+
+                <!-- Save button -->
+                <Button
+                    android:id="@+id/saveMenuBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Save"
+                    android:layout_marginStart="10dp"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#000000"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </RelativeLayout>
+</ScrollView>
