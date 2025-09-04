@@ -1,5 +1,6 @@
 plugins {
-    alias(libs.plugins.androidApplication) apply false
+    id("com.android.application") version "8.9.1" apply false
+    id("com.android.library") version "8.9.1" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.25" apply false
     id("com.google.gms.google-services") version "4.3.15" apply false
-    alias(libs.plugins.kotlinAndroid) apply false // ← add this line
 }

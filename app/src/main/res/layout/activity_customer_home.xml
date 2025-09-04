@@ -2,14 +2,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#FFFFFF"
     android:id="@+id/main">
 
-    <!-- Layout Summary:
-    RelativeLayout is used as the parent to allow the bottom AppBar to stick at the bottom.
-    LinearLayouts are used for arranging items horizontally or vertically (top strip, search bar, bottom AppBar).
-    FrameLayout is used for the top banner so the background image and top strip content can overlap.-->
-
+    <!-- Top Bar -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -27,9 +24,6 @@
                 android:src="@drawable/pizzabanner3"
                 android:scaleType="centerCrop"
                 android:alpha="0.4"/>
-            <!-- src: background image shown in the strip -->
-            <!-- scaleType: makes the image cover the whole area -->
-            <!-- alpha: makes the image transparent so text is visible -->
 
             <!-- Top strip content -->
             <LinearLayout
@@ -39,11 +33,7 @@
                 android:orientation="horizontal"
                 android:paddingStart="16dp"
                 android:paddingEnd="8dp">
-                <!-- gravity: centers items vertically inside the strip -->
-                <!-- paddingStart: adds space on the left side of the strip -->
-                <!-- paddingEnd: adds space on the right side of the strip -->
 
-                <!-- App name -->
                 <TextView
                     android:id="@+id/stripText"
                     android:layout_width="wrap_content"
@@ -53,13 +43,11 @@
                     android:textSize="20sp"
                     android:textStyle="bold"/>
 
-                <!-- This empty space pushes the button to the right -->
                 <Space
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"/>
 
-                <!-- Account profile picture -->
                 <ImageButton
                     android:id="@+id/profileButton"
                     android:layout_width="48dp"
@@ -70,15 +58,10 @@
                     android:scaleType="centerCrop"
                     android:adjustViewBounds="true"
                     android:contentDescription="Profile Button"/>
-                <!-- src: default image shown in the button -->
-                <!-- layout_gravity: puts button at the right side vertically centered -->
-                <!-- background: no default button background -->
-                <!-- scaleType: makes the image fill the button evenly, cropping if needed -->
-                <!-- contentDescription: accessibility description for screen readers -->
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Container for search at right corner below profile -->
+        <!-- Search Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -87,7 +70,6 @@
             android:paddingEnd="8dp"
             android:layout_marginTop="8dp">
 
-            <!-- Edit text for typing search -->
             <EditText
                 android:id="@+id/searchBox"
                 android:layout_width="200dp"
@@ -99,7 +81,6 @@
                 android:textSize="18dp"
                 android:inputType="text"/>
 
-            <!-- Search button next to the text box -->
             <ImageButton
                 android:id="@+id/searchButton"
                 android:layout_width="45dp"
@@ -108,7 +89,6 @@
                 android:background="@null"
                 android:contentDescription="Search Button"
                 android:layout_marginStart="8dp"/>
-            <!-- layout_marginStart: adds 8dp space to the left of this component -->
         </LinearLayout>
     </LinearLayout>
 
@@ -121,49 +101,47 @@
         android:gravity="center"
         android:background="#333333"
         android:layout_alignParentBottom="true">
-        <!-- layout_alignParentBottom: sticks this bar at the bottom of the screen -->
 
         <LinearLayout
             android:layout_width="200dp"
             android:layout_height="40dp">
-        <ImageButton
-            android:id="@+id/homeButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/ic_home3"
-            android:background="@null"
-            android:contentDescription="Home"/>
-        <!-- layout_weight: divides the horizontal space equally among the buttons in the bottom app bar;
-        each button takes equal space -->
 
-        <ImageButton
-            android:id="@+id/ordersButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/ic_orders4"
-            android:background="@null"
-            android:contentDescription="Orders"/>
+            <ImageButton
+                android:id="@+id/homeButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:src="@drawable/ic_home3"
+                android:background="@null"
+                android:contentDescription="Home"/>
+
+            <ImageButton
+                android:id="@+id/ordersButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:src="@drawable/ic_orders4"
+                android:background="@null"
+                android:contentDescription="Orders"/>
+        </LinearLayout>
     </LinearLayout>
 
-    </LinearLayout>
+    <!-- Your main app content (e.g., menu, cart fragments) -->
+    <FrameLayout
+        android:id="@+id/mainContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <LinearLayout
-        android:layout_width="60dp"
+    <!-- Chat icon FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/chatFab"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="600dp"
-        android:layout_marginLeft="330dp">
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/chatbotButton"
-            android:layout_width="10px"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/ic_chatbot3"
-            android:background="@null"
-            android:contentDescription="Chatbot"
-            />
-    </LinearLayout>
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:contentDescription="Open Chatbot"
+        android:src="@android:drawable/ic_dialog_email"
+        app:fabSize="normal" />
 
 </RelativeLayout>

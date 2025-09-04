@@ -6,16 +6,10 @@ plugins {
 
 android {
     namespace = "com.example.pizzamaniaapp"
-    compileSdk = 34
-
+    compileSdk = 36   // 🔼 bump to 36
     defaultConfig {
-        applicationId = "com.example.pizzamaniaapp"
+        targetSdk = 36 // 🔼 bump to 36
         minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -56,4 +50,11 @@ dependencies {
 
     // ✅ Add Realtime Database
     implementation("com.google.firebase:firebase-database:20.3.1")
+
+    // Evann added these
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.fragment:fragment-ktx:1.8.4")
+
+    implementation("com.stripe:stripe-android:20.39.0")
+    implementation("com.google.android.material:material:1.11.0")
 }

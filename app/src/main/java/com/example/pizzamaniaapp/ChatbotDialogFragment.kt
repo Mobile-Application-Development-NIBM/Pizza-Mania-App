@@ -102,7 +102,7 @@ class ChatbotDialogFragment : DialogFragment() {
                     for (pizza in snapshot.children) {
                         val name = pizza.child("name").getValue(String::class.java)?.lowercase() ?: ""
                         if (lowerMessage.contains(name)) {
-                            currentPizza = name.capitalize()
+                            currentPizza = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
                             messages.add(ChatMessage("Selected $currentPizza. Add toppings (e.g., 'add extra cheese') or say 'add to cart'.", false))
                             chatAdapter.notifyItemInserted(messages.size - 1)
                             selected = true
