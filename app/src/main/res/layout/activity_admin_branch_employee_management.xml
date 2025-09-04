@@ -20,6 +20,20 @@
     <!-- TextView: page title at top, can show 2 lines -->
 
     <ImageButton
+        android:id="@+id/reloadBranchBtn"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_reload"
+        android:background="@drawable/button_border"
+        android:contentDescription="Reload Branches"
+        android:layout_below="@id/pageTitle"
+        android:layout_toStartOf="@id/addBranchBtn"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"/>
+    <!-- ImageButton: reload button to refresh branch list -->
+    <!-- layout_toStartOf: places button left to Add Branch button -->
+
+    <ImageButton
         android:id="@+id/addBranchBtn"
         android:layout_width="40dp"
         android:layout_height="40dp"
@@ -83,4 +97,3 @@
     </LinearLayout>
 
 </RelativeLayout>
-

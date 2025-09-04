@@ -1,6 +1,8 @@
 plugins {
-    alias(libs.plugins.androidApplication)
-    id("com.google.gms.google-services")
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android") version "1.9.10"
+    id("com.google.gms.google-services") version "4.3.15" // match project-level
+    kotlin("kapt") version "1.9.10"
 }
 
 android {
@@ -20,17 +22,24 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro"
+            )
         }
     }
+
+    // ✅ Match Java and Kotlin versions
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -43,12 +52,19 @@ dependencies {
     // Firebase
     implementation("com.google.firebase:firebase-auth:22.3.0")
 
-    // ❌ REMOVE Firestore since you won't use it anymore
+    // ❌ Removed Firestore since not used
     // implementation("com.google.firebase:firebase-firestore:24.10.0")
 
-    // ✅ Keep storage only if your app uses file/image upload
+    // ✅ Keep storage only if needed
     implementation("com.google.firebase:firebase-storage:20.3.0")
 
     // ✅ Add Realtime Database
     implementation("com.google.firebase:firebase-database:20.3.1")
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    kapt("com.github.bumptech.glide:compiler:4.15.1")
+
+    implementation ("com.google.android.material:material:1.9.0")
+
 }

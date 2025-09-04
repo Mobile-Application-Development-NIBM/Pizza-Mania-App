@@ -17,6 +17,12 @@
             android:exported="false" />
         <activity
             android:name=".AdminBranchEmployeeManagementActivity"
+            android:exported="false"></activity>
+        <activity
+            android:name=".AccountActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminHomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,20 +31,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AccountActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AdminHomeActivity"
-            android:exported="false" />
-        <activity
             android:name=".EmployeeHomeActivity"
             android:exported="false">
         </activity>
-
         <activity
             android:name=".EmployeeOrderActivity"
             android:exported="false">
-
         </activity>
         <activity
             android:name=".CustomerOrderActivity"

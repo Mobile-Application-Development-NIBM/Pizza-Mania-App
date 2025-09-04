@@ -74,9 +74,20 @@
 // - Custom top toast popup
 // - Auto-dismiss after 3 seconds with progress bar
 
+// showLoadingDialog(message)
+// - Shows a custom loading popup with message
+// - Prevents user interaction while loading
+// - Forces fixed size (300dp x 180dp) for consistency
+// - Transparent background
+
+// hideLoadingDialog()
+// - Dismisses the loading popup if it's showing
+
+
 
 package com.example.pizzamaniaapp; // package: identifies app/project
 
+import android.content.Intent;
 import android.os.Bundle; // Bundle: used to pass data between activities
 import android.os.CountDownTimer;
 import android.view.View; // View: base class for all UI elements
@@ -114,6 +125,10 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
     LinearLayout branchList; // layout to hold branch items dynamically
     DatabaseReference db; // reference to Firebase database
     ImageButton addBranchBtn; // button to add new branch
+    AlertDialog loadingDialog; //button for loading dialog
+    ImageButton reloadBtn;    // button to reload branches
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) { // called when activity is created
@@ -126,94 +141,171 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
 
         loadBranches(); // load all branches from database
         addBranchBtn.setOnClickListener(v -> prepareNewBranchPopup()); // show popup when add button is clicked
+
+
+        // --- Home button click ---
+        ImageButton homeButton = findViewById(R.id.homeButton); // get home button by ID
+        homeButton.setOnClickListener(v -> {
+            // open AdminHomeActivity
+            Intent intent = new Intent(AdminBranchEmployeeManagementActivity.this, AdminHomeActivity.class);
+            startActivity(intent);
+        });
+
+
+        reloadBtn = findViewById(R.id.reloadBranchBtn); // connect reloadBtn from XML
+        reloadBtn.setOnClickListener(v -> loadBranches()); // reload branches when clicked
+
     }
 
-    private void prepareNewBranchPopup() { // prepares popup for adding new branch
-        db.child("branches").addListenerForSingleValueEvent(new ValueEventListener() { // get all branches once from Firebase
+    private void prepareNewBranchPopup() { // method to prepare and open the branch popup
+        showLoadingDialog("Preparing new branch..."); // show loading dialog while generating branch ID
+
+        db.child("branches").addListenerForSingleValueEvent(new ValueEventListener() { // fetch all branches from Firebase (one-time read)
             @Override
-            public void onDataChange(DataSnapshot snapshot) { // called when data is loaded
-                int nextNumber = (int) snapshot.getChildrenCount() + 1; // calculate next branch number
-                String branchID = "b" + String.format("%03d", nextNumber); // create branch ID like b001, b002
-                showBranchPopup(null, branchID); // show popup with new branch ID
+            public void onDataChange(DataSnapshot snapshot) { // called when data is successfully fetched
+                hideLoadingDialog(); // hide loading dialog since data is ready
+
+                int nextNumber = (int) snapshot.getChildrenCount() + 1; // count existing branches and add 1 for the new branch
+                String branchID = "b" + String.format("%03d", nextNumber); // create branch ID in format b001, b002, ...
+
+                // Now open the branch popup with the generated branch ID
+                showBranchPopup(null, branchID); // pass null (no existing branch) and the new ID
             }
 
             @Override
-            public void onCancelled(DatabaseError error) { // called if Firebase query fails
-                showBranchPopup(null, "b001"); // fallback: show popup with default ID b001
+            public void onCancelled(DatabaseError error) { // called if Firebase read fails
+                hideLoadingDialog(); // hide loading since request failed
+                showCustomToast("Failed to prepare branch: " + error.getMessage()); // show error message
             }
         });
     }
 
-    private void showBranchPopup(Branch existingBranch, String preloadedBranchID) { // show popup to add or edit a branch
-        View popupView = getLayoutInflater().inflate(R.layout.add_branch_popup, null); // inflate popup layout
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create(); // create AlertDialog
-        dialog.show(); // show the popup
-        Window window = dialog.getWindow(); // get window to set size/background
+    private void showBranchPopup(Branch existingBranch, String preloadedBranchID) { // show add/edit branch popup
+        // 1️⃣ Inflate the popup layout
+        View popupView = getLayoutInflater().inflate(R.layout.add_branch_popup, null);
+
+        // 2️⃣ Create the AlertDialog
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(popupView)
+                .create();
+
+        // 3️⃣ Show the dialog
+        dialog.show();
+
+        // 4️⃣ Customize window size & background
+        Window window = dialog.getWindow();
         if (window != null) {
-            window.setLayout((int) (getResources().getDisplayMetrics().widthPixels * 0.8), // set width 80% of screen
-                    WindowManager.LayoutParams.WRAP_CONTENT); // height wraps content
-            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // transparent background
+            window.setLayout((int) (getResources().getDisplayMetrics().widthPixels * 0.8), // width = 80% of screen
+                    WindowManager.LayoutParams.WRAP_CONTENT); // height = wrap content
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // transparent bg for rounded corners
         }
 
-        // get input fields and buttons from popup
-        TextView popupTitle = popupView.findViewById(R.id.popupTitleBranch); // NEW: title TextView
-        EditText branchIdInput = popupView.findViewById(R.id.branchIdInput);
-        EditText branchNameInput = popupView.findViewById(R.id.branchNameInput);
-        EditText contactInput = popupView.findViewById(R.id.contactInput);
-        EditText locationInput = popupView.findViewById(R.id.locationInput);
-        Button addBtn = popupView.findViewById(R.id.addBtn);
-        Button cancelBtn = popupView.findViewById(R.id.cancelBtn);
-        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // close popup on cancel
+        // 5️⃣ Get all views from popup
+        TextView popupTitle = popupView.findViewById(R.id.popupTitleBranch); // popup title
+        EditText branchIdInput = popupView.findViewById(R.id.branchIdInput); // branch ID input
+        EditText branchNameInput = popupView.findViewById(R.id.branchNameInput); // branch name input
+        EditText contactInput = popupView.findViewById(R.id.contactInput); // branch contact input
+        EditText locationInput = popupView.findViewById(R.id.locationInput); // branch location input
+        Button addBtn = popupView.findViewById(R.id.addBtn); // save/update button
+        Button cancelBtn = popupView.findViewById(R.id.cancelBtn); // cancel button
 
-        // set popup title
-        if(existingBranch != null) popupTitle.setText("Edit Branch"); // editing
-        else popupTitle.setText("Add New Branch"); // adding new
+        // 6️⃣ Cancel button closes the dialog
+        cancelBtn.setOnClickListener(v -> dialog.dismiss());
 
-        // if editing existing branch, populate fields
+        // 7️⃣ Set title & button text depending on Add or Edit mode
         if (existingBranch != null) {
-            branchIdInput.setText(existingBranch.branchID); branchIdInput.setEnabled(false); // ID cannot be edited
+            popupTitle.setText("Edit Branch"); // editing mode
+            addBtn.setText("Update");
+        } else {
+            popupTitle.setText("Add New Branch"); // adding mode
+            addBtn.setText("Save");
+        }
+
+        // 8️⃣ Populate fields if editing, or preload ID if adding
+        if (existingBranch != null) {
+            // Fill existing branch details
+            branchIdInput.setText(existingBranch.branchID);
+            branchIdInput.setEnabled(false); // ID cannot be changed
             branchNameInput.setText(existingBranch.name);
             contactInput.setText(String.valueOf(existingBranch.contact));
             locationInput.setText(existingBranch.latitude + ", " + existingBranch.longitude);
-        } else if (preloadedBranchID != null) { // if new branch, set preloaded ID
-            branchIdInput.setText(preloadedBranchID);
-            branchIdInput.setEnabled(false);
+        } else if (preloadedBranchID != null) {
+            // Show loading only when preparing a new branch
+            showLoadingDialog("Preparing branch...");
+            branchIdInput.setText(preloadedBranchID); // preload branch ID
+            branchIdInput.setEnabled(false); // disable editing ID
+            hideLoadingDialog(); // ✅ hide loading once ID is set
         }
 
-        addBtn.setOnClickListener(v -> { // handle save button click
-            String id = branchIdInput.getText().toString().trim(); // get input values
+        // 9️⃣ Handle Save/Update button click
+        addBtn.setOnClickListener(v -> {
+            String id = branchIdInput.getText().toString().trim();
             String name = branchNameInput.getText().toString().trim();
             String contactStr = contactInput.getText().toString().trim();
             String locationStr = locationInput.getText().toString().trim();
 
-            // check if any field is empty
+            // 🔹 Validate required fields
             if (id.isEmpty() || name.isEmpty() || contactStr.isEmpty() || locationStr.isEmpty()) {
                 showCustomToast("Please fill all fields");
                 return;
             }
 
-            // parse contact number
+            // 🔹 Parse contact number
             long contact;
-            try { contact = Long.parseLong(contactStr); }
-            catch (NumberFormatException e) { showCustomToast("Invalid contact number"); return; }
+            try {
+                contact = Long.parseLong(contactStr);
+            } catch (NumberFormatException e) {
+                showCustomToast("Invalid contact number");
+                return;
+            }
 
-            // parse location values
+            // 🔹 Parse location (latitude,longitude)
             String[] locParts = locationStr.split(",");
-            if (locParts.length != 2) { showCustomToast("Enter location as latitude,longitude"); return; }
+            if (locParts.length != 2) {
+                showCustomToast("Enter location as latitude,longitude");
+                return;
+            }
 
             double latitude, longitude;
-            try { latitude = Double.parseDouble(locParts[0].trim()); longitude = Double.parseDouble(locParts[1].trim()); }
-            catch (NumberFormatException e) { showCustomToast("Invalid location values"); return; }
+            try {
+                latitude = Double.parseDouble(locParts[0].trim());
+                longitude = Double.parseDouble(locParts[1].trim());
+            } catch (NumberFormatException e) {
+                showCustomToast("Invalid location values");
+                return;
+            }
 
-            Branch branch = new Branch(id, name, contact, latitude, longitude); // create branch object
-            db.child("branches").child(id).setValue(branch) // save to Firebase
-                    .addOnSuccessListener(aVoid -> { showCustomToast("Branch saved!"); loadBranches(); dialog.dismiss(); }) // success
-                    .addOnFailureListener(e -> showCustomToast("Failed: " + e.getMessage())); // failure
+            // 🔹 Skip saving if nothing changed in edit mode
+            if (existingBranch != null) {
+                if (existingBranch.name.equals(name) &&
+                        existingBranch.contact == contact &&
+                        existingBranch.latitude == latitude &&
+                        existingBranch.longitude == longitude) {
+                    showCustomToast("No changes detected!");
+                    return;
+                }
+            }
+
+            // 🔹 Create branch object
+            Branch branch = new Branch(id, name, contact, latitude, longitude);
+
+            // ✅ No loading dialog here — only toast feedback
+            db.child("branches").child(id).setValue(branch)
+                    .addOnSuccessListener(aVoid -> {
+                        showCustomToast(existingBranch != null ? "Branch updated!" : "Branch added!");
+                        loadBranches(); // refresh list
+                        dialog.dismiss(); // close popup
+                    })
+                    .addOnFailureListener(e -> {
+                        showCustomToast("Failed: " + e.getMessage());
+                    });
         });
     }
 
     private void loadBranches() { // load all branches from Firebase and display
         branchList.removeAllViews(); // clear existing branch views
+        showLoadingDialog("Loading branches & employees..."); // show loading dialog
+
         db.child("branches").addListenerForSingleValueEvent(new ValueEventListener() { // read branches once
             @Override
             public void onDataChange(DataSnapshot snapshot) { // called when data is fetched
@@ -224,6 +316,10 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
                 }
 
                 Collections.sort(branchListTemp, Comparator.comparingInt(a -> Integer.parseInt(a.branchID.substring(1)))); // sort branches by ID number
+
+                if (branchListTemp.isEmpty()) { hideLoadingDialog(); return; } // hide loading if no branches
+
+                final int[] branchesLoaded = {0}; // counter to track loaded branches
 
                 for (Branch branch : branchListTemp) { // loop sorted branches
                     View branchView = getLayoutInflater().inflate(R.layout.branch_row, null); // inflate branch row layout
@@ -239,84 +335,125 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
                     deleteBranch.setOnClickListener(v -> showDeleteConfirmation("branch", branch.branchID)); // open delete confirmation
                     addEmployeeBtn.setOnClickListener(v -> showAddEmployeePopup(branch.branchID)); // open add employee popup
 
-                    loadEmployees(branch.branchID, employeeContainer); // load employees for this branch
+                    // load employees for this branch, hide loading only after all are loaded
+                    loadEmployees(branch.branchID, employeeContainer, () -> {
+                        branchesLoaded[0]++;
+                        if (branchesLoaded[0] == branchListTemp.size()) hideLoadingDialog(); // hide loading when all branches processed
+                    });
+
                     branchList.addView(branchView); // add branch row to main layout
                 }
             }
+
             @Override
-            public void onCancelled(DatabaseError error) {} // handle database errors (empty)
+            public void onCancelled(DatabaseError error) {
+                hideLoadingDialog(); // hide loading on error
+            }
         });
     }
 
-    private void showAddEmployeePopup(String branchId) { // open popup to add new employee
-        View popupView = getLayoutInflater().inflate(R.layout.add_employee_popup, null); // inflate employee popup layout
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create(); // create dialog with popup view
-        dialog.show(); // show popup
-        Window window = dialog.getWindow(); // get window to customize size
-        if (window != null) { // if window exists
-            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels*0.8), WindowManager.LayoutParams.WRAP_CONTENT); // set width 80% of screen
-            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // transparent background
-        }
+    private void showAddEmployeePopup(String branchId) { // method to open popup for adding a new employee
+        showLoadingDialog("Preparing new employee..."); // 🔹 show loading dialog first
 
-        EditText empIdInput = popupView.findViewById(R.id.employeeIDInput); // input for employee ID
-        EditText userIdInput = popupView.findViewById(R.id.userIDInput); // input for user ID
-        EditText nameInput = popupView.findViewById(R.id.employeeNameInput); // input for name
-        EditText emailInput = popupView.findViewById(R.id.employeeEmailInput); // input for email
-        EditText contactInput = popupView.findViewById(R.id.employeeContactInput); // input for contact number
-        EditText addressInput = popupView.findViewById(R.id.employeeAddressInput); // input for address
-
-        Button cancelBtn = popupView.findViewById(R.id.cancelEmployeeBtn); // cancel button
-        Button addBtn = popupView.findViewById(R.id.addEmployeeBtn); // add/save button
-        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // close popup on cancel
-
-        db.child("employees").addListenerForSingleValueEvent(new ValueEventListener() { // fetch all employees once
+        // Step 1: Generate employee ID
+        db.child("employees").addListenerForSingleValueEvent(new ValueEventListener() { // fetch employees table once
             @Override
-            public void onDataChange(DataSnapshot snapshot) { // on fetch success
-                int nextEmpNum = (int) snapshot.getChildrenCount() + 1; // next employee number
-                empIdInput.setText("e" + String.format("%03d", nextEmpNum)); // auto-generate employee ID
+            public void onDataChange(DataSnapshot snapshot) { // when data is fetched
+                int nextEmpNum = (int) snapshot.getChildrenCount() + 1; // count existing employees + 1
+                String empID = "e" + String.format("%03d", nextEmpNum); // format employee ID (e001, e002...)
+
+                // Step 2: Generate user ID
+                db.child("users").addListenerForSingleValueEvent(new ValueEventListener() { // fetch users table once
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        int nextUserNum = (int) snapshot.getChildrenCount() + 1; // count existing users + 1
+                        String userID = "u" + String.format("%03d", nextUserNum); // format user ID (u001, u002...)
+
+                        hideLoadingDialog(); // ✅ hide loading before showing popup
+
+                        // --- Now inflate and show popup ---
+                        View popupView = getLayoutInflater().inflate(R.layout.add_employee_popup, null); // inflate employee popup layout
+                        AlertDialog dialog = new AlertDialog.Builder(AdminBranchEmployeeManagementActivity.this) // create alert dialog
+                                .setView(popupView) // set custom view inside dialog
+                                .create(); // build dialog
+                        dialog.show(); // display dialog
+
+                        Window window = dialog.getWindow(); // get window of dialog
+                        if (window != null) { // check if available
+                            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels * 0.8), // set width to 80% of screen
+                                    WindowManager.LayoutParams.WRAP_CONTENT); // height wrap content
+                            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // transparent background (for rounded corners)
+                        }
+
+                        // --- Input fields ---
+                        EditText empIdInput = popupView.findViewById(R.id.employeeIDInput); // employee ID field
+                        EditText userIdInput = popupView.findViewById(R.id.userIDInput); // user ID field
+                        EditText nameInput = popupView.findViewById(R.id.employeeNameInput); // employee name field
+                        EditText emailInput = popupView.findViewById(R.id.employeeEmailInput); // employee email field
+                        EditText passwordInput = popupView.findViewById(R.id.employeePasswordInput); // employee password field
+                        EditText contactInput = popupView.findViewById(R.id.employeeContactInput); // employee contact field
+                        EditText addressInput = popupView.findViewById(R.id.employeeAddressInput); // employee address field
+
+                        empIdInput.setText(empID); // set auto-generated employee ID
+                        empIdInput.setEnabled(false); // make employee ID read-only
+                        userIdInput.setText(userID); // set auto-generated user ID
+                        userIdInput.setEnabled(false); // make user ID read-only
+
+                        // --- Buttons ---
+                        Button cancelBtn = popupView.findViewById(R.id.cancelEmployeeBtn); // cancel button
+                        Button addBtn = popupView.findViewById(R.id.addEmployeeBtn); // add/save button
+                        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // close popup on cancel
+
+                        // --- Add button logic ---
+                        addBtn.setOnClickListener(v -> { // handle add employee button click
+                            String name = nameInput.getText().toString().trim(); // get name
+                            String email = emailInput.getText().toString().trim(); // get email
+                            String password = passwordInput.getText().toString().trim(); // get password
+                            String contactStr = contactInput.getText().toString().trim(); // get contact as string
+                            String address = addressInput.getText().toString().trim(); // get address
+
+                            // Validation: check empty fields
+                            if(name.isEmpty() || email.isEmpty() || password.isEmpty()
+                                    || contactStr.isEmpty() || address.isEmpty()){
+                                showCustomToast("Please fill all fields"); // show error
+                                return; // stop
+                            }
+
+                            // Validation: contact must be a number
+                            long contact;
+                            try {
+                                contact = Long.parseLong(contactStr); // parse contact
+                            } catch(NumberFormatException e){
+                                showCustomToast("Invalid contact"); // error if not number
+                                return; // stop
+                            }
+
+                            // Create objects
+                            Employee employee = new Employee(empID, branchId, name, email, contact, address, userID, password); // employee with password
+                            User user = new User(userID, name, email, address, contact, "Employee"); // user without password
+
+                            // Save employee to Firebase
+                            db.child("employees").child(empID).setValue(employee) // save employee
+                                    .addOnSuccessListener(aVoid -> // if employee saved
+                                            db.child("users").child(userID).setValue(user) // then save user
+                                                    .addOnSuccessListener(aVoid2 -> { // if user saved
+                                                        showCustomToast("Employee added!"); // success toast
+                                                        loadBranches(); // reload branches list
+                                                        dialog.dismiss(); // close popup
+                                                    })
+                                                    .addOnFailureListener(e -> showCustomToast("Failed to add user: "+e.getMessage())) // error saving user
+                                    )
+                                    .addOnFailureListener(e -> showCustomToast("Failed to add employee: "+e.getMessage())); // error saving employee
+                        });
+                    }
+                    @Override public void onCancelled(DatabaseError error) { hideLoadingDialog(); } // hide loading if error in user fetch
+                });
             }
-            @Override public void onCancelled(DatabaseError error) {} // handle error (empty)
-        });
-
-        db.child("users").addListenerForSingleValueEvent(new ValueEventListener() { // fetch all users once
-            @Override
-            public void onDataChange(DataSnapshot snapshot) { // on fetch success
-                int nextUserNum = (int) snapshot.getChildrenCount() + 1; // next user number
-                userIdInput.setText("u" + String.format("%03d", nextUserNum)); // auto-generate user ID
-            }
-            @Override public void onCancelled(DatabaseError error) {} // handle error (empty)
-        });
-
-        addBtn.setOnClickListener(v -> { // save employee button clicked
-            String empID = empIdInput.getText().toString().trim(); // get employee ID
-            String userID = userIdInput.getText().toString().trim(); // get user ID
-            String name = nameInput.getText().toString().trim(); // get name
-            String email = emailInput.getText().toString().trim(); // get email
-            String contactStr = contactInput.getText().toString().trim(); // get contact string
-            String address = addressInput.getText().toString().trim(); // get address
-
-            if(empID.isEmpty() || userID.isEmpty() || name.isEmpty() || email.isEmpty() || contactStr.isEmpty() || address.isEmpty()){ // check empty fields
-                showCustomToast("Please fill all fields"); // show warning
-                return; // stop execution
-            }
-
-            long contact;
-            try { contact = Long.parseLong(contactStr); } // parse contact to number
-            catch(NumberFormatException e){ showCustomToast("Invalid contact"); return; } // handle invalid number
-
-            Employee employee = new Employee(empID, branchId, name, email, contact, address, userID); // create Employee object
-            User user = new User(userID, name, email, address, contact, "Employee"); // create User object
-
-            db.child("employees").child(empID).setValue(employee) // save employee to Firebase
-                    .addOnSuccessListener(aVoid -> db.child("users").child(userID).setValue(user) // save user on success
-                            .addOnSuccessListener(aVoid2 -> { showCustomToast("Employee added!"); loadBranches(); dialog.dismiss(); }) // success message
-                            .addOnFailureListener(e -> showCustomToast("Failed to add user: "+e.getMessage())) // handle user save failure
-                    )
-                    .addOnFailureListener(e -> showCustomToast("Failed to add employee: "+e.getMessage())); // handle employee save failure
+            @Override public void onCancelled(DatabaseError error) { hideLoadingDialog(); } // hide loading if error in employee fetch
         });
     }
 
-    private void loadEmployees(String branchId, LinearLayout container) { // load employees of a branch into container
+    private void loadEmployees(String branchId, LinearLayout container, Runnable onLoaded) { // load employees with callback
         db.child("employees").orderByChild("branchID").equalTo(branchId) // query employees with this branch ID
                 .addListenerForSingleValueEvent(new ValueEventListener() { // fetch data once
                     @Override
@@ -338,116 +475,168 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
 
                             container.addView(empView); // add employee row to container
                         }
+
+                        if(onLoaded != null) onLoaded.run(); // notify branch that employees are loaded
                     }
-                    @Override public void onCancelled(DatabaseError error) {} // handle fetch error (empty)
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        if(onLoaded != null) onLoaded.run(); // notify on error
+                    }
                 });
     }
 
     private void showEditEmployeePopup(Employee employee) { // open popup to edit an existing employee
-        View popupView = getLayoutInflater().inflate(R.layout.add_employee_popup, null); // inflate employee popup layout
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create(); // create dialog with popup view
-        dialog.show(); // show dialog
-        Window window = dialog.getWindow(); // get dialog window
-        if(window!=null){
-            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels*0.8), WindowManager.LayoutParams.WRAP_CONTENT); // set width to 80% of screen
-            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // transparent background
+        View popupView = getLayoutInflater().inflate(R.layout.add_employee_popup, null); // reuse same popup layout
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create(); // create dialog
+        dialog.show(); // display dialog
+
+        Window window = dialog.getWindow(); // get window for customization
+        if(window != null){
+            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels*0.8), WindowManager.LayoutParams.WRAP_CONTENT); // 80% width
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // rounded/transparent bg
         }
 
-        TextView popupTitle = popupView.findViewById(R.id.popupTitleEmployee); // NEW: title TextView
-        popupTitle.setText("Edit Employee"); // set title for editing employee
+        // --- Popup title ---
+        TextView popupTitle = popupView.findViewById(R.id.popupTitleEmployee);
+        popupTitle.setText("Edit Employee"); // change title to "Edit Employee"
 
-        EditText empIdInput = popupView.findViewById(R.id.employeeIDInput); // employee ID input field
-        EditText userIdInput = popupView.findViewById(R.id.userIDInput); // user ID input field
-        EditText nameInput = popupView.findViewById(R.id.employeeNameInput); // name input
-        EditText emailInput = popupView.findViewById(R.id.employeeEmailInput); // email input
-        EditText contactInput = popupView.findViewById(R.id.employeeContactInput); // contact input
-        EditText addressInput = popupView.findViewById(R.id.employeeAddressInput); // address input
+        // --- Input fields ---
+        EditText empIdInput = popupView.findViewById(R.id.employeeIDInput);
+        EditText userIdInput = popupView.findViewById(R.id.userIDInput);
+        EditText nameInput = popupView.findViewById(R.id.employeeNameInput);
+        EditText emailInput = popupView.findViewById(R.id.employeeEmailInput);
+        EditText contactInput = popupView.findViewById(R.id.employeeContactInput);
+        EditText addressInput = popupView.findViewById(R.id.employeeAddressInput);
+        EditText passwordInput = popupView.findViewById(R.id.employeePasswordInput); // ✅ password field (optional update)
 
-        Button cancelBtn = popupView.findViewById(R.id.cancelEmployeeBtn); // cancel button
-        Button addBtn = popupView.findViewById(R.id.addEmployeeBtn); // update button (originally add)
-        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // dismiss popup on cancel
+        // --- Buttons ---
+        Button cancelBtn = popupView.findViewById(R.id.cancelEmployeeBtn);
+        Button updateBtn = popupView.findViewById(R.id.addEmployeeBtn); // reuse button, relabel
+        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // close popup on cancel
 
-        empIdInput.setText(employee.employeeID); empIdInput.setEnabled(false); // set employee ID and disable editing
-        userIdInput.setText(employee.userID); userIdInput.setEnabled(false); // set user ID and disable editing
-        nameInput.setText(employee.name); // set current name
-        emailInput.setText(employee.email); // set current email
-        contactInput.setText(String.valueOf(employee.contact)); // set current contact
-        addressInput.setText(employee.address); // set current address
-        addBtn.setText("Update"); // change button text to Update
+        // --- Pre-fill existing data ---
+        empIdInput.setText(employee.employeeID); empIdInput.setEnabled(false); // ID fixed
+        userIdInput.setText(employee.userID); userIdInput.setEnabled(false); // user ID fixed
+        nameInput.setText(employee.name);
+        emailInput.setText(employee.email);
+        contactInput.setText(String.valueOf(employee.contact));
+        addressInput.setText(employee.address);
+        passwordInput.setText(employee.password);
+        updateBtn.setText("Update");
 
-        addBtn.setOnClickListener(v -> { // update employee on click
-            String name = nameInput.getText().toString().trim(); // get trimmed name
-            String email = emailInput.getText().toString().trim(); // get trimmed email
-            String contactStr = contactInput.getText().toString().trim(); // get trimmed contact
-            String address = addressInput.getText().toString().trim(); // get trimmed address
+        // --- Update button logic ---
+        updateBtn.setOnClickListener(v -> {
+            String name = nameInput.getText().toString().trim();
+            String email = emailInput.getText().toString().trim();
+            String contactStr = contactInput.getText().toString().trim();
+            String address = addressInput.getText().toString().trim();
+            String newPassword = passwordInput.getText().toString().trim(); // new password (if any)
 
-            if(name.isEmpty() || email.isEmpty() || contactStr.isEmpty() || address.isEmpty()){ // check empty fields
-                showCustomToast("Please fill all fields"); // show warning
+            // Validation: required fields
+            if(name.isEmpty() || email.isEmpty() || contactStr.isEmpty() || address.isEmpty()){
+                showCustomToast("Please fill all fields");
                 return;
             }
 
-            long contact; // variable for contact number
-            try { contact = Long.parseLong(contactStr); } // parse contact to long
-            catch(NumberFormatException e){ showCustomToast("Invalid contact"); return; } // handle invalid number
+            // Parse contact
+            long contact;
+            try { contact = Long.parseLong(contactStr); }
+            catch(NumberFormatException e){ showCustomToast("Invalid contact"); return; }
 
-            employee.name = name; // update employee name
-            employee.email = email; // update email
-            employee.contact = contact; // update contact
-            employee.address = address; // update address
+            // Detect if no changes at all (including password)
+            boolean noPasswordChange = newPassword.isEmpty() || newPassword.equals(employee.password);
+            if (employee.name.equals(name) &&
+                    employee.email.equals(email) &&
+                    employee.contact == contact &&
+                    employee.address.equals(address) &&
+                    noPasswordChange) {
+                showCustomToast("No changes detected!");
+                return;
+            }
 
-            db.child("employees").child(employee.employeeID).setValue(employee) // save updated employee to DB
+            // --- Update employee object ---
+            employee.name = name;
+            employee.email = email;
+            employee.contact = contact;
+            employee.address = address;
+            if(!newPassword.isEmpty()) {
+                employee.password = newPassword; // ✅ update password only in employees table
+            }
+
+            // --- Save updates in Firebase ---
+            db.child("employees").child(employee.employeeID).setValue(employee)
                     .addOnSuccessListener(aVoid -> {
-                        db.child("users").child(employee.userID).child("name").setValue(name); // update user name
-                        db.child("users").child(employee.userID).child("email").setValue(email); // update user email
-                        db.child("users").child(employee.userID).child("address").setValue(address); // update user address
-                        db.child("users").child(employee.userID).child("phone").setValue(contact); // update user phone
-                        showCustomToast("Employee updated!"); // success message
-                        loadBranches(); dialog.dismiss(); // reload branches and dismiss dialog
+                        // Update matching user record (EXCEPT password)
+                        db.child("users").child(employee.userID).child("name").setValue(name);
+                        db.child("users").child(employee.userID).child("email").setValue(email);
+                        db.child("users").child(employee.userID).child("address").setValue(address);
+                        db.child("users").child(employee.userID).child("phone").setValue(contact);
+
+                        showCustomToast("Employee updated!"); // success
+                        loadBranches(); // refresh UI
+                        dialog.dismiss(); // close popup
                     })
-                    .addOnFailureListener(e -> showCustomToast("Update failed: "+e.getMessage())); // failure message
+                    .addOnFailureListener(e -> showCustomToast("Update failed: "+e.getMessage()));
         });
     }
 
-    private void showDeleteConfirmation(String type, String key) { // open popup to confirm deletion
-        View popupView = getLayoutInflater().inflate(R.layout.delete_confirmation_popup, null); // inflate delete confirmation layout
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create(); // create dialog with popup view
-        dialog.show(); // show dialog
-        Window window = dialog.getWindow(); // get dialog window
-        if(window!=null){
-            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels*0.8), WindowManager.LayoutParams.WRAP_CONTENT); // set width 80% of screen
-            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // transparent background
+    private void showDeleteConfirmation(String type, String key) {
+        View popupView = getLayoutInflater().inflate(R.layout.delete_confirmation_popup, null); // Inflate popup layout
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create(); // Create dialog with custom view
+        dialog.show(); // Show the dialog on screen
+
+        Window window = dialog.getWindow(); // Get dialog window to customize size
+        if(window != null){
+            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels * 0.8),
+                    WindowManager.LayoutParams.WRAP_CONTENT); // Set width to 80% screen, height wraps content
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Make background transparent
         }
 
-        Button cancelBtn = popupView.findViewById(R.id.cancelDeleteBtn); // cancel button
-        Button confirmBtn = popupView.findViewById(R.id.confirmDeleteBtn); // confirm button
-        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // dismiss dialog on cancel
+        Button cancelBtn = popupView.findViewById(R.id.cancelDeleteBtn); // Get cancel button from popup
+        Button confirmBtn = popupView.findViewById(R.id.confirmDeleteBtn); // Get confirm button from popup
+        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // Close dialog if cancel clicked
 
-        confirmBtn.setOnClickListener(v -> { // handle confirm click
-            if(type.equals("branch")) { // delete branch
-                db.child("branches").child(key).removeValue()
-                        .addOnSuccessListener(aVoid -> {
-                            showCustomToast("Branch deleted!"); // show success message
-                            loadBranches(); // reload branches
-                        })
-                        .addOnFailureListener(e -> showCustomToast("Failed to delete branch: " + e.getMessage())); // failure
+        confirmBtn.setOnClickListener(v -> { // Handle confirm button click
+            if(type.equals("branch")) { // If deleting a branch
+                db.child("employees").orderByChild("branchID").equalTo(key) // Query employees under this branch
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                if(snapshot.exists()) { // If any employee exists
+                                    showCustomToast("Cannot delete: employees exist in this branch!"); // Show warning
+                                } else { // No employees exist
+                                    db.child("branches").child(key).removeValue() // Delete branch
+                                            .addOnSuccessListener(aVoid -> {
+                                                showCustomToast("Branch deleted!"); // Show success message
+                                                loadBranches(); // Reload branches
+                                            })
+                                            .addOnFailureListener(e ->
+                                                    showCustomToast("Failed to delete branch: " + e.getMessage())); // Show failure message
+                                }
+                            }
+                            @Override public void onCancelled(DatabaseError error) {} // Ignore cancel/error
+                        });
             }
-            else if(type.equals("employee")) { // delete employee
-                db.child("employees").child(key).addListenerForSingleValueEvent(new ValueEventListener() { // get employee data
+            else if(type.equals("employee")) { // If deleting an employee
+                db.child("employees").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
-                        String userID = snapshot.child("userID").getValue(String.class); // get linked user ID
-                        db.child("employees").child(key).removeValue()
+                        String userID = snapshot.child("userID").getValue(String.class); // Get linked user ID
+                        db.child("employees").child(key).removeValue() // Delete employee
                                 .addOnSuccessListener(aVoid -> {
-                                    if(userID != null) db.child("users").child(userID).removeValue(); // delete linked user
-                                    showCustomToast("Employee deleted!"); // show success message
-                                    loadBranches(); // reload branches
+                                    if(userID != null) db.child("users").child(userID).removeValue(); // Delete linked user if exists
+                                    showCustomToast("Employee deleted!"); // Show success message
+                                    loadBranches(); // Reload branches
                                 })
-                                .addOnFailureListener(e -> showCustomToast("Failed to delete employee: " + e.getMessage())); // failure
+                                .addOnFailureListener(e ->
+                                        showCustomToast("Failed to delete employee: " + e.getMessage())); // Show failure message
                     }
-                    @Override public void onCancelled(DatabaseError error) {} // ignore cancel error
+                    @Override public void onCancelled(DatabaseError error) {} // Ignore cancel/error
                 });
             }
-            dialog.dismiss(); // dismiss dialog after delete
+
+            dialog.dismiss(); // Close confirmation dialog
         });
     }
 
@@ -464,13 +653,26 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
     }
 
     public static class Employee { // Employee data model
-        public String employeeID, branchID, name, email, address, userID; // employee details
+        public String employeeID, branchID, name, email, address, userID, password; // ✅ added password
         public long contact; // employee phone number
 
         public Employee() {} // default constructor for Firebase
 
-        public Employee(String employeeID, String branchID, String name, String email, long contact, String address, String userID){ // constructor with data
-            this.employeeID = employeeID; this.branchID = branchID; this.name = name; this.email=email; this.contact=contact; this.address=address; this.userID=userID;
+        // ✅ constructor including password
+        public Employee(String employeeID, String branchID, String name, String email, long contact, String address, String userID, String password) {
+            this.employeeID = employeeID;
+            this.branchID = branchID;
+            this.name = name;
+            this.email = email;
+            this.contact = contact;
+            this.address = address;
+            this.userID = userID;
+            this.password = password;
+        }
+
+        // ✅ constructor without password (for compatibility if needed)
+        public Employee(String employeeID, String branchID, String name, String email, long contact, String address, String userID) {
+            this(employeeID, branchID, name, email, contact, address, userID, ""); // default password empty
         }
     }
 
@@ -527,4 +729,32 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
         }.start(); // Start timer
     }
 
+    private void showLoadingDialog(String message) {
+        if (loadingDialog != null && loadingDialog.isShowing()) return; // If dialog already showing, do nothing
+
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null); // Inflate custom loading layout
+        TextView textView = view.findViewById(R.id.loadingText); // Get TextView for loading message
+        textView.setText(message); // Set the message text
+
+        loadingDialog = new AlertDialog.Builder(this) // Create AlertDialog with custom view
+                .setView(view)
+                .setCancelable(false) // Prevent user from dismissing by tapping outside
+                .create();
+
+        loadingDialog.show(); // Show the dialog
+
+        // 🔹 Force the dialog to match a fixed size (300dp x 180dp)
+        if (loadingDialog.getWindow() != null) {
+            int width = (int) (300 * getResources().getDisplayMetrics().density);  // Convert 300dp to pixels
+            int height = (int) (180 * getResources().getDisplayMetrics().density); // Convert 180dp to pixels
+            loadingDialog.getWindow().setLayout(width, height); // Set dialog width and height
+            loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Transparent background
+        }
+    }
+
+    private void hideLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing()) { // Check if dialog exists and is showing
+            loadingDialog.dismiss(); // Dismiss the dialog
+        }
+    }
 }
