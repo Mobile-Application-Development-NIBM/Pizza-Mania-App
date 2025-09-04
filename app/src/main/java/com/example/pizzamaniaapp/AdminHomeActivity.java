@@ -460,6 +460,26 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
             return; // Stop execution
         }
 
+        // 🔹 If editing, check if there are changes
+        if (existingItem != null) {
+            boolean noChanges =
+                    existingItem.name.equals(name) &&
+                            existingItem.category.equals(category) &&
+                            ((existingItem.description == null && desc.isEmpty()) ||
+                                    (existingItem.description != null && existingItem.description.equals(desc))) &&
+                            existingItem.price == price &&
+                            ((existingItem.imageURL == null && imageUrl.isEmpty()) ||
+                                    (existingItem.imageURL != null && existingItem.imageURL.equals(imageUrl))) &&
+                            existingItem.branches != null &&
+                            existingItem.branches.size() == selectedBranches.size() &&
+                            existingItem.branches.containsAll(selectedBranches);
+
+            if (noChanges) {
+                showCustomToast("No changes detected"); // ✅ Custom message if no updates
+                return;
+            }
+        }
+
         // 🔹 Create new MenuItem object and set values
         MenuItem menuItem = new MenuItem();
         menuItem.menuID = id; // Set ID
@@ -474,7 +494,6 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
         db.child("menu").child(id).setValue(menuItem) // Save item under "menu/{id}"
                 .addOnSuccessListener(aVoid -> { // If save succeeds
                     String msg = (existingItem != null) ? "Menu item updated" : "Menu item saved";
-                    // Show different message depending on add or update
                     showCustomToast(msg); // Notify user
                     dialog.dismiss(); // Close popup
                     loadMenuItems(); // Refresh menu list

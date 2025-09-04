@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:fillViewport="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SignUpActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/main">
+
+        <!-- fULL Screen Banner -->
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/pizzapopup_bg4"
+            android:scaleType="centerCrop"
+            android:alpha="0.3"/>
+
+        <!--Sign up-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/signupcard"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:layout_margin="19dp"
+            android:background="@drawable/search_box_border"
+            android:elevation="8dp"
+            android:alpha="0.9"
+            android:layout_centerInParent="true"
+            android:layout_marginBottom="20dp">
+
+            <!--Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pizza Mania"
+                android:textColor="#000000"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:layout_marginBottom="16dp" />
+
+            <!--Message -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create your account"
+                android:textColor="#444444"
+                android:textSize="25sp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Name -->
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:id="@+id/inputName"
+                android:hint="Full Name"
+                android:padding="14dp"
+                android:background="@drawable/search_box_border"
+                android:textColor="#000000"
+                android:textSize="17sp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Email -->
+            <EditText
+
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:id="@+id/inputEmail"
+                android:hint="Email"
+                android:padding="12dp"
+                android:background="@drawable/search_box_border"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:inputType="textEmailAddress"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Phone -->
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:id="@+id/inputPhone"
+                android:hint="Phone Number"
+                android:padding="12dp"
+                android:background="@drawable/search_box_border"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:inputType="phone"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Address -->
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:id="@+id/inputAddress"
+                android:hint="Address"
+                android:padding="12dp"
+                android:background="@drawable/search_box_border"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:inputType="textPostalAddress"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Password -->
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:id="@+id/inputPassword"
+                android:hint="Password"
+                android:padding="12dp"
+                android:background="@drawable/search_box_border"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:inputType="textPassword"
+                android:layout_marginBottom="20dp" />
+
+
+            <!-- Signup Button -->
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:id="@+id/signupBtn"
+                android:text="Sign Up"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:background="#FFCC00"
+                android:stateListAnimator="@null" />
+
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</ScrollView>
