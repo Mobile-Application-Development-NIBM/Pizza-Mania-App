@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     id("com.google.gms.google-services")
+    alias(libs.plugins.kotlinAndroid)
 }
 
 android {
@@ -27,6 +28,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 dependencies {
@@ -36,6 +40,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.firebase.firestore)
+    implementation(libs.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

@@ -6,4 +6,19 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
     <style name="Theme.PizzaManiaApp" parent="Base.Theme.PizzaManiaApp" />
+
+    <!-- Base app theme -->
+    <style name="Theme.PizzaAI" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your app theme -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+    </style>
+
+    <!-- Chatbot dialog style -->
+    <style name="ChatbotDialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
 </resources>
