@@ -1,9 +1,10 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android") version "1.9.10"
-    id("com.google.gms.google-services") version "4.3.15" // match project-level
-    kotlin("kapt") version "1.9.10"
+    id("org.jetbrains.kotlin.android")   // ✅ remove version
+    id("com.google.gms.google-services") version "4.3.15"
+    kotlin("kapt")                       // ✅ remove version
 }
+
 
 android {
     namespace = "com.example.pizzamaniaapp"
@@ -66,5 +67,11 @@ dependencies {
     kapt("com.github.bumptech.glide:compiler:4.15.1")
 
     implementation ("com.google.android.material:material:1.9.0")
+
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.fragment:fragment-ktx:1.8.4")
+
+    implementation("com.stripe:stripe-android:20.39.0")
+    implementation("com.google.android.material:material:1.11.0")
 
 }
