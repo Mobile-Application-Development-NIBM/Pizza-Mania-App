@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -51,7 +50,6 @@
                 android:layout_gravity="center_vertical|end"
                 android:adjustViewBounds="true"
                 android:background="@android:color/transparent"
-                android:contentDescription="@string/profile_button_desc"
                 android:scaleType="centerCrop"
                 android:src="@drawable/default_profile9" />
         </LinearLayout>
@@ -73,25 +71,45 @@
             android:dividerPadding="12dp"
             android:background="@drawable/glass_bg">
 
-            <!-- Availability -->
+            <!-- Branch Selection -->
             <TextView
-                android:id="@+id/availableLabel"
+                android:id="@+id/branchLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Available:"
+                android:text="Branch:"
                 android:textSize="18dp"
                 android:textColor="#333333"
                 android:paddingVertical="6dp"
                 android:paddingStart="8dp" />
 
             <Spinner
-                android:id="@+id/availabilitySpinner"
+                android:id="@+id/branchSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:entries="@array/availability_array"
                 android:padding="8dp"
+                android:layout_marginTop="10dp" />
+
+            <!-- Availability -->
+            <TextView
+                android:id="@+id/availableLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Availability:"
+                android:textSize="18dp"
+                android:textColor="#333333"
+                android:paddingVertical="6dp"
+                android:paddingStart="8dp"
                 android:layout_marginTop="20dp" />
 
+            <Switch
+                android:id="@+id/statusSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Available"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="10dp" />
+
+            <!-- Category -->
             <TextView
                 android:id="@+id/categoryTxt"
                 android:layout_width="match_parent"
@@ -103,6 +121,7 @@
                 android:paddingStart="8dp"
                 android:layout_marginTop="20dp"/>
 
+            <!-- Name -->
             <TextView
                 android:id="@+id/nameTxt"
                 android:layout_width="match_parent"
@@ -115,6 +134,7 @@
                 android:paddingStart="8dp"
                 android:layout_marginTop="20dp" />
 
+            <!-- Price -->
             <TextView
                 android:id="@+id/priceTxt"
                 android:layout_width="match_parent"
@@ -128,7 +148,7 @@
 
             <!-- Update button -->
             <Button
-                android:id="@+id/updateStatusBtn"
+                android:id="@+id/updateAvailableBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Update Availability"
