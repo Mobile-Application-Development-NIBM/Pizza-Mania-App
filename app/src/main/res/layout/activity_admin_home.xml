@@ -18,7 +18,8 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="16dp"
-            android:paddingEnd="8dp">
+            android:paddingEnd="8dp"
+            android:layout_marginTop="5dp">
 
             <TextView
                 android:id="@+id/stripText"
@@ -51,7 +52,7 @@
             android:id="@+id/menuTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Menu"
+            android:text="Menus"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#000000"
