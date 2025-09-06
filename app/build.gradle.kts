@@ -74,4 +74,6 @@ dependencies {
     implementation("com.stripe:stripe-android:20.39.0")
     implementation("com.google.android.material:material:1.11.0")
 
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 }

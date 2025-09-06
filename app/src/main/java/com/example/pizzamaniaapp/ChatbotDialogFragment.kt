@@ -121,15 +121,27 @@ class ChatbotDialogFragment : DialogFragment() {
     }
 
     private fun showMenu(): String {
-        var response = "Menu:\n"
-        database.child("pizzas").get().addOnSuccessListener { snapshot ->
-            for (pizza in snapshot.children) {
-                val name = pizza.child("name").getValue(String::class.java) ?: ""
-                val price = pizza.child("price").getValue(Double::class.java) ?: 0.0
-                response += "$name - $$price\n"
+        database.child("menu").get().addOnSuccessListener { snapshot ->
+            if (!snapshot.exists()) {
+                messages.add(ChatMessage("No menu items found in the database.", false))
+                chatAdapter.notifyItemInserted(messages.size - 1)
+                return@addOnSuccessListener
             }
-            messages.add(ChatMessage(response, false))
+            android.util.Log.d("Chatbot", "Snapshot children count: ${snapshot.children.count()}")
+            for (item in snapshot.children) {
+                val name = item.child("name").getValue(String::class.java) ?: "Unknown Item"
+                val price = item.child("price").getValue(Double::class.java) ?: 0.0
+                val description = item.child("description").getValue(String::class.java) ?: "No description"
+                val paddedName = String.format("%-20s", name)
+                val priceText = String.format("LKR %.0f", price)
+                val formattedText = "• $paddedName ....... $priceText\n  - $description"
+                messages.add(ChatMessage(formattedText, false))
+                chatAdapter.notifyItemInserted(messages.size - 1)
+            }
+        }.addOnFailureListener { exception ->
+            messages.add(ChatMessage("Error fetching menu: ${exception.message}", false))
             chatAdapter.notifyItemInserted(messages.size - 1)
+            android.util.Log.e("Chatbot", "Error: ${exception.message}")
         }
         return "Fetching menu..."
     }
