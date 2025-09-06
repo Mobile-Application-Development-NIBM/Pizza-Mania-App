@@ -1,12 +1,12 @@
 <resources>
     <string name="app_name">PizzaManiaApp</string>
 
-    <string-array name="status_array">
-        <item>confirm order</item>
-        <item>Preparing</item>
-        <item>completed</item>
-        <item>Delivered</item>
-    </string-array>
+<!--    <string-array name="spinnerStatus">-->
+<!--        <item>confirm order</item>-->
+<!--        <item>Preparing</item>-->
+<!--        <item>completed</item>-->
+<!--        <item>Delivered</item>-->
+<!--    </string-array>-->
 
     <string name="profile_button_desc">Profile Button</string>
 
