@@ -1,18 +1,15 @@
 <resources>
     <string name="app_name">PizzaManiaApp</string>
 
-    <string-array name="availability_array">
-        <item>True</item>
-        <item>False</item>
-    </string-array>
-
-    <string-array name="status_array">
-        <item>Pending</item>
-        <item>Preparing</item>
-        <item>On the Way</item>
-        <item>Delivered</item>
-    </string-array>
+<!--    <string-array name="spinnerStatus">-->
+<!--        <item>confirm order</item>-->
+<!--        <item>Preparing</item>-->
+<!--        <item>completed</item>-->
+<!--        <item>Delivered</item>-->
+<!--    </string-array>-->
 
     <string name="profile_button_desc">Profile Button</string>
 
 </resources>
+
+

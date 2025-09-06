@@ -1,178 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/white"
-    tools:context=".EmployeeHomeActivity">
+    android:padding="12dp"
+    android:background="@android:color/white">
 
-    <!-- Top banner -->
-    <FrameLayout
+    <!-- Top Banner -->
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="174dp">
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/pizzabanner3" />
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:alpha="0.4"
-            android:scaleType="centerCrop"
-            android:src="@drawable/pizzabanner3" />
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Current Orders"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="8dp"
-            >
-
-            <TextView
-                android:layout_width="248dp"
-                android:layout_height="69dp"
-                android:layout_gravity="center"
-                android:layout_marginLeft="60dp"
-                android:layout_marginTop="30dp"
-                android:text="PizzaMania"
-                android:textColor="#000000"
-                android:textSize="40sp"
-                android:textStyle="bold"
-                />
-
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <ImageButton
-                android:id="@+id/profileButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="center_vertical|end"
-                android:adjustViewBounds="true"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/profile_button_desc"
-                android:scaleType="centerCrop"
-                android:src="@drawable/default_profile9" />
-        </LinearLayout>
-    </FrameLayout>
-
-    <!-- Order Details Section -->
-    <ScrollView
+    <!-- RecyclerView for dynamic orders -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerOrders"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="16dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:divider="?android:attr/dividerHorizontal"
-            android:showDividers="middle"
-            android:dividerPadding="12dp"
-            android:background="@drawable/glass_bg">
-
-            <TextView
-                android:id="@+id/branchIdTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Branch ID : "
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp" />
-
-            <TextView
-                android:id="@+id/orderIdTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Order ID: "
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20px"/>
-
-            <TextView
-                android:id="@+id/userIdTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="User ID: "
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20px"/>
-
-            <TextView
-                android:id="@+id/itemTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Item: "
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20px"/>
-
-            <TextView
-                android:id="@+id/totalPriceTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Total Price: "
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20px"/>
-
-            <TextView
-                android:id="@+id/deliveryTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Estimated Delivery: "
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20px"/>
-
-            <TextView
-                android:id="@+id/statusTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Current Status: "
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:textColor="#000000"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20px"/>
-
-            <!-- Status dropdown -->
-            <Spinner
-                android:id="@+id/statusSpinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:entries="@array/status_array"
-                android:padding="8dp"
-                android:layout_marginTop="20px"/>
-
-            <!-- Update button -->
-            <Button
-                android:id="@+id/updateStatusBtn"
-                android:layout_width="match_parent"
-                android:layout_height="63dp"
-                android:layout_marginTop="20px"
-                android:backgroundTint="#FFDE21"
-                android:paddingVertical="10dp"
-                android:text="Update Status"
-                android:textColor="@android:color/black"/>
-        </LinearLayout>
-    </ScrollView>
-
+        android:layout_height="match_parent"/>
 </LinearLayout>

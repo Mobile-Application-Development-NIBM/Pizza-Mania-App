@@ -1,6 +1,7 @@
-  {
+{
   "project_info": {
     "project_number": "311400070882",
+    "firebase_url": "https://pizzamaniaapp-89938-default-rtdb.firebaseio.com",
     "project_id": "pizzamaniaapp-89938",
     "storage_bucket": "pizzamaniaapp-89938.firebasestorage.app"
   },

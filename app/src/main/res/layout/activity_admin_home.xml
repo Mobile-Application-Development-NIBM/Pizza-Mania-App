@@ -52,7 +52,7 @@
             android:id="@+id/menuTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Menu"
+            android:text="Menus"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#000000"
