@@ -33,13 +33,14 @@ public class EmployeeOrderActivity extends AppCompatActivity {
         recyclerOrders.setLayoutManager(new LinearLayoutManager(this));
 
         orderList = new ArrayList<>();
-        adapter = new com.example.pizzamaniaapp.OrderAdapter(this, orderList);
+        //  Pass "employee" role to adapter
+        adapter = new OrderAdapter(this, orderList, "employee");
         recyclerOrders.setAdapter(adapter);
 
         ordersRef = FirebaseDatabase.getInstance().getReference("order");
 
         // Load orders from Firebase
-        ordersRef.addValueEventListener(new ValueEventListener() {    //Syncs data in real-time with listeners
+        ordersRef.addValueEventListener(new ValueEventListener() {    // Syncs data in real-time
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 orderList.clear();
