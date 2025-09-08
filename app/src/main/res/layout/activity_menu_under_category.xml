@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:id="@+id/main">
+    tools:context=".MenuUnderCategoryActivity"
+    android:background="#FFFFFF">
 
-    <!-- Top Bar -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -15,58 +17,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="8dp"
-            android:layout_marginTop="5dp">
-
-            <TextView
-                android:id="@+id/stripText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PizzaMania"
-                android:textColor="#000000"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <ImageButton
-                android:id="@+id/profileButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_vertical|end"
-                android:src="@drawable/default_profile15"
-                android:background="@null"
-                android:scaleType="centerCrop"
-                android:adjustViewBounds="true"
-                android:contentDescription="Profile Button" />
-        </LinearLayout>
-
-        <!-- Menu Title -->
-        <TextView
-            android:id="@+id/menuTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Menus"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:gravity="center_horizontal"
-            android:layout_marginTop="8dp" />
-
-        <!-- Search + Add -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:layout_marginTop="8dp"
             android:paddingHorizontal="8dp">
+
 
             <!-- Search Box -->
             <EditText
@@ -94,7 +49,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- RecyclerView for Branches + Menus -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/branchRecyclerView"
         android:layout_width="match_parent"
@@ -104,7 +58,6 @@
         android:padding="8dp"
         android:clipToPadding="false" />
 
-    <!-- Bottom AppBar -->
     <LinearLayout
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
@@ -132,5 +85,4 @@
             android:background="@null"
             android:contentDescription="Branch Page" />
     </LinearLayout>
-
 </RelativeLayout>

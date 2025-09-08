@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- LinearLayout: card container for a single menu item -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="150dp"
+    android:layout_height="220dp"
+    android:orientation="vertical"
+    android:background="@drawable/card_background"
+    android:padding="8dp"
+    android:layout_marginEnd="12dp">
+    <!-- background="@drawable/card_background": styled card background -->
+    <!-- layout_marginEnd="12dp": adds spacing between cards in a row -->
+
+
+    <!-- ImageView: menu item picture (e.g., pizza image) -->
+    <ImageView
+        android:id="@+id/menuImage"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/sample_pizza" />
+    <!-- scaleType="centerCrop": crops image edges while filling view -->
+
+    <!-- TextView: menu item name -->
+    <TextView
+        android:id="@+id/menuName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Menu Name"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="6dp"
+        android:textColor="#000000"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:scrollHorizontally="false"/>
+    <!-- ellipsize="end": shows "..." if text is too long -->
+    <!-- singleLine="true": keeps text on one line -->
+
+    <!-- TextView: menu item price -->
+    <TextView
+        android:id="@+id/menuPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rs. 0"
+        android:textSize="13sp"
+        android:textColor="#444444" />
+
+    <!-- LinearLayout: row for action buttons (edit, delete) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="4dp">
+        <!-- gravity="end": aligns buttons to the right side -->
+
+        <!-- ImageButton: order button -->
+        <Button
+            android:id="@+id/order"
+            android:layout_width="105dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_border"
+            android:backgroundTint="@android:color/holo_orange_light"
+            android:drawableLeft="@drawable/ic_orders3"
+            android:padding="10px"
+            android:text="Order"
+            android:textColor="@android:color/black"
+            android:textSize="16dp" />
+
+    </LinearLayout>
+</LinearLayout>
