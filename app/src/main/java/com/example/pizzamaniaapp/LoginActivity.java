@@ -92,36 +92,68 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         //CHeck Employee in Firebase
-        employeesRef.orderByChild("email").equalTo(email).get().addOnCompleteListener(task -> {
-            if(task.isSuccessful() && task.getResult().exists()){
-                for(DataSnapshot snapshot : task.getResult().getChildren()) {
-                    String empEmail = snapshot.child("email").child("Value").getValue(String.class);
-                    String empPassword = snapshot.child("password").getValue(String.class);
+        employeesRef.orderByChild("email").equalTo(email).get()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful() && task.getResult().exists()){
+                        for(DataSnapshot snapshot : task.getResult().getChildren()) {
+                            String empEmail = snapshot.child("email").getValue(String.class);
+                            String empPassword = snapshot.child("password").getValue(String.class);
 
-                    if(empPassword == null && empEmail == null) {
-                        Toast.makeText(LoginActivity.this, "Employee data corrupted ", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                            if(empEmail == null || empPassword == null) {
+                                Toast.makeText(LoginActivity.this, "Employee data missing", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
 
-                    if(password.equals(empPassword) && email.equals(empEmail)) {
-                        saveSession("Employee", email, password);
-                        redirectToHome("Employee");
-                        return;  // stop here if employee matches
+                            if(email.equals(empEmail) && password.equals(empPassword)) {
+                                saveSession("Employee", email, password);
+                                redirectToHome("Employee");
+                                return;
+                            }
+                        }
+                        Toast.makeText(LoginActivity.this, "Invalid password for employee", Toast.LENGTH_SHORT).show();
                     }
-                }
-                Toast.makeText(LoginActivity.this, "Invalid password for employee", Toast.LENGTH_SHORT).show();
-            }
-            else {
-                //Cheching for customers
-                loginCustomer(email, password);
-            }
-        })
+                    else {
+                        //Cheching for customers
+                        loginDeliveryman(email, password);
+                    }
+                })
                 .addOnFailureListener(e->
                         Toast.makeText(LoginActivity.this, "Employee check failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
 
     }
 
+    private void loginDeliveryman(String email, String password) {
+        DatabaseReference deliveryRef = FirebaseDatabase.getInstance().getReference("deliverymen");
+        deliveryRef.orderByChild("email").equalTo(email).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        for (DataSnapshot snapshot : task.getResult().getChildren()) {
+                            String delEmail = snapshot.child("email").getValue(String.class);
+                            String delPassword = snapshot.child("password").getValue(String.class);
+                            String delID = snapshot.child("delID").getValue(String.class);
+
+                            if (delEmail == null || delPassword == null) {
+                                Toast.makeText(LoginActivity.this, "Deliveryman data missing", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            if (email.equals(delEmail) && password.equals(delPassword)) {
+                                saveSession("Deliveryman", email, delID);
+                                redirectToHome("Deliveryman");
+                                return;
+                            }
+                        }
+                        Toast.makeText(LoginActivity.this, "Invalid password for deliveryman", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // If not Deliveryman → check Customer
+                        loginCustomer(email, password);
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(LoginActivity.this, "Deliveryman check failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
     private void loginCustomer (String email, String password){
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(authTask -> {
@@ -182,6 +214,9 @@ public class LoginActivity extends AppCompatActivity {
                 break;
             case "Employee":
                 intent = new Intent(this, EmployeeHomeActivity.class);
+                break;
+            case "Deliveryman":
+                intent = new Intent(this, DeliverymanHomeActivity.class);
                 break;
             case "Customer":
             default:
