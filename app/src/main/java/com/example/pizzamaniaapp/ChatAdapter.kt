@@ -12,7 +12,7 @@ import com.bumptech.glide.Glide
 import com.google.firebase.database.FirebaseDatabase
 import com.example.pizzamaniaapp.ChatMessage // Adjust import based on package
 
-class ChatAdapter(private val messages: List<ChatMessage>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ChatAdapter(private val messages: MutableList<ChatMessage>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val USER_MESSAGE = 1
     private val BOT_MESSAGE = 2
     private val database = FirebaseDatabase.getInstance().reference
@@ -20,8 +20,7 @@ class ChatAdapter(private val messages: List<ChatMessage>) : RecyclerView.Adapte
     override fun getItemViewType(position: Int): Int = if (messages[position].isUser) USER_MESSAGE else BOT_MESSAGE
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val layout = if (viewType == USER_MESSAGE) R.layout.chat_item_layout else R.layout.chat_item_layout
-        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.chat_item_layout, parent, false)
         return if (viewType == USER_MESSAGE) UserViewHolder(view) else BotViewHolder(view)
     }
 
@@ -38,7 +37,7 @@ class ChatAdapter(private val messages: List<ChatMessage>) : RecyclerView.Adapte
                 holder.textView.text = message.text
                 holder.textView.gravity = Gravity.START
                 holder.textView.setTextColor(Color.BLUE)
-                // Load image for each menu item
+                holder.imageView.visibility = View.GONE // Temporarily disable image loading
                 // In onBindViewHolder for BotViewHolder
                 if (!message.isUser && !message.text.startsWith("Fetching menu...") && !message.text.startsWith("Error fetching menu:")) {
                     holder.imageView.visibility = View.VISIBLE
