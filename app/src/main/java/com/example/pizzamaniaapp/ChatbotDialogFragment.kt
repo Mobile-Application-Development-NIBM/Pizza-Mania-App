@@ -21,7 +21,7 @@ class ChatbotDialogFragment : DialogFragment() {
     private lateinit var userInput: EditText
     private lateinit var sendButton: Button
     private val messages = mutableListOf<ChatMessage>()
-    private val database = FirebaseDatabase.getInstance().reference
+    private val database = FirebaseDatabase.getInstance("https://pizzamaniaapp-89938-default-rtdb.firebaseio.com/").reference
     private val auth = FirebaseAuth.getInstance()
     private var currentPizza: String? = null // Track selected pizza for context
     private var selectedBranch: String? = null // Track selected branch
@@ -74,6 +74,7 @@ class ChatbotDialogFragment : DialogFragment() {
 
     private fun processUserMessage(message: String) {
         val lowerMessage = message.lowercase()
+        Log.d("Chatbot", "Processing user message: $lowerMessage")
         val response = when {
             listOf("hi", "hello", "yo", "hey").any { lowerMessage.contains(it) } -> {
                 "👋 Hey there! Welcome back to PizzaBot. 🍕 Please select a branch with 'select branch <branch_name>' or type 'show menu' to start."
@@ -83,6 +84,7 @@ class ChatbotDialogFragment : DialogFragment() {
                 val branchInput = lowerMessage.replace("select branch", "").trim()
                 val branchMap = mapOf("b001" to "Colombo", "b002" to "Galle", "b003" to "Kandy", "b004" to "Jaffna", "b005" to "Matara")
                 val branchCode = branchMap.entries.find { it.value.lowercase() == branchInput.lowercase() }?.key
+                Log.d("Chatbot", "Branch input: $branchInput | Selected branch code: $branchCode")
                 if (branchCode != null) {
                     selectedBranch = branchCode
                     messages.add(ChatMessage("Branch selected: ${branchMap[branchCode]}. Now showing menu...", false))
@@ -115,8 +117,7 @@ class ChatbotDialogFragment : DialogFragment() {
                     database.child("menu").get().addOnSuccessListener { snapshot ->
                         Log.d("Chatbot", "Menu selection - Snapshot exists: ${snapshot.exists()} | Count: ${snapshot.childrenCount}")
                         for (item in snapshot.children) {
-                            val branches = item.child("branches")
-                                .getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+                            val branches = item.child("branches").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
                             val itemName = item.child("name").getValue(String::class.java)?.lowercase() ?: ""
                             Log.d("Chatbot", "Checking item: $itemName | Branches: $branches | User input: $lowerMessage")
                             if (branches.contains(selectedBranch) && itemName.contains(lowerMessage)) {
@@ -177,8 +178,15 @@ class ChatbotDialogFragment : DialogFragment() {
                 if (branches.contains(selectedBranch)) {
                     hasItems = true
                     val name = item.child("name").getValue(String::class.java) ?: "Unknown Item"
-                    val price = item.child("price").getValue(Double::class.java) ?: 0.0
+                    // Handle price as Double or Long
+                    val priceValue = item.child("price").value
+                    val price = when (priceValue) {
+                        is Double -> priceValue
+                        is Long -> priceValue.toDouble()
+                        else -> 0.0
+                    }
                     val description = item.child("description").getValue(String::class.java) ?: "No description"
+                    Log.d("Chatbot", "Parsed item - Name: $name | Price: $price | Description: $description")
                     val paddedName = String.format("%-20s", name)
                     val priceText = String.format("LKR %.0f", price)
                     val formattedText = "• $paddedName ....... $priceText\n  - $description"
@@ -220,7 +228,12 @@ class ChatbotDialogFragment : DialogFragment() {
                     val branches = item.child("branches").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
                     if (branches.contains(selectedBranch)) {
                         val name = item.child("name").getValue(String::class.java) ?: ""
-                        val price = item.child("price").getValue(Double::class.java) ?: 0.0
+                        val priceValue = item.child("price").value
+                        val price = when (priceValue) {
+                            is Double -> priceValue
+                            is Long -> priceValue.toDouble()
+                            else -> 0.0
+                        }
                         response += "$name - LKR $price\n"
                     }
                 }
@@ -253,7 +266,12 @@ class ChatbotDialogFragment : DialogFragment() {
         if (currentPizza == null) return "Please select a menu item first."
         database.child("menu").orderByChild("name").equalTo(currentPizza).get().addOnSuccessListener { snapshot ->
             Log.d("Chatbot", "Add to cart - Snapshot exists: ${snapshot.exists()} | Count: ${snapshot.childrenCount}")
-            val price = snapshot.children.firstOrNull()?.child("price")?.getValue(Double::class.java) ?: 0.0
+            val priceValue = snapshot.children.firstOrNull()?.child("price")?.value
+            val price = when (priceValue) {
+                is Double -> priceValue
+                is Long -> priceValue.toDouble()
+                else -> 0.0
+            }
             database.child("carts").child(userId).push().setValue(mapOf("name" to currentPizza, "price" to price))
             messages.add(ChatMessage("$currentPizza added to cart! Say 'show cart' or 'pay'.", false))
             chatAdapter.notifyItemInserted(messages.size - 1)
@@ -277,7 +295,12 @@ class ChatbotDialogFragment : DialogFragment() {
             } else {
                 for (item in snapshot.children) {
                     val name = item.child("name").getValue(String::class.java) ?: ""
-                    val price = item.child("price").getValue(Double::class.java) ?: 0.0
+                    val priceValue = item.child("price").value
+                    val price = when (priceValue) {
+                        is Double -> priceValue
+                        is Long -> priceValue.toDouble()
+                        else -> 0.0
+                    }
                     response += "$name - LKR $price\n"
                 }
             }
