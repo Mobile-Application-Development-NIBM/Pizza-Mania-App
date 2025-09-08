@@ -13,7 +13,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pizzamaniaapp.Order;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -25,10 +24,13 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     private Context context;
     private List<Order> orderList;
     private DatabaseReference ordersRef;
+    private String userRole; // "employee" or "delivery"
 
-    public OrderAdapter(Context context, List<Order> orderList) {
+    // ✅ Fixed constructor: now requires userRole
+    public OrderAdapter(Context context, List<Order> orderList, String userRole) {
         this.context = context;
         this.orderList = orderList;
+        this.userRole = userRole;
         ordersRef = FirebaseDatabase.getInstance().getReference("order");
     }
 
@@ -46,8 +48,32 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         holder.tvItems.setText(order.getItems());
 
         // Spinner setup
-        String[] statuses = {"confirm order", "Preparing", "Completed"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, statuses);
+        String[] statuses = {"confirm order", "Preparing", "Delivery Pending", "Completed"};
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, statuses) {
+            @Override
+            public boolean isEnabled(int pos) {
+                // If user is EMPLOYEE, disable "Completed"
+                if (userRole.equals("employee") && getItem(pos).equals("Completed")) {
+                    return false;
+                }
+                return true; // delivery man can select everything
+            }
+
+            @Override
+            public View getDropDownView(int pos, View convertView, ViewGroup parent) {
+                View view = super.getDropDownView(pos, convertView, parent);
+                TextView tv = (TextView) view;
+
+                if (userRole.equals("employee") && getItem(pos).equals("Completed")) {
+                    tv.setTextColor(0xFFAAAAAA); // Gray out for employee
+                } else {
+                    tv.setTextColor(0xFF000000); // Black for normal
+                }
+                return view;
+            }
+        };
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         holder.spinnerStatus.setAdapter(adapter);
 

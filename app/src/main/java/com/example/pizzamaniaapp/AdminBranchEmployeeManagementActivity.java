@@ -151,6 +151,14 @@ public class AdminBranchEmployeeManagementActivity extends AppCompatActivity { /
             startActivity(intent);
         });
 
+        // --- Deliveryman button click ---
+        ImageButton deliveryman = findViewById(R.id.deliverymanPageButton); // get deliveryman button by ID
+        deliveryman.setOnClickListener(v -> {
+            // open AdminDeliverymanManagement
+            Intent intent = new Intent(AdminBranchEmployeeManagementActivity.this, AdminDeliverymanManagement.class);
+            startActivity(intent);
+        });
+
 
         reloadBtn = findViewById(R.id.reloadBranchBtn); // connect reloadBtn from XML
         reloadBtn.setOnClickListener(v -> loadBranches()); // reload branches when clicked

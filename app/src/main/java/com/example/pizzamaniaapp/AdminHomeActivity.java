@@ -214,6 +214,14 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
             }
         });
 
+        // --- Deliveryman button click ---
+        ImageButton deliveryman = findViewById(R.id.deliverymanPageButton); // get deliveryman button by ID
+        deliveryman.setOnClickListener(v -> {
+            // open AdminDeliverymanManagement
+            Intent intent = new Intent(AdminHomeActivity.this, AdminDeliverymanManagement.class);
+            startActivity(intent);
+        });
+
     }
 
     private void loadMenuItems() { // Method to load all menu items from Firebase
