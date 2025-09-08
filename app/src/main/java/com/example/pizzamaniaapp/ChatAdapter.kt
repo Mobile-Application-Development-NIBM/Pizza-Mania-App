@@ -8,14 +8,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import android.graphics.Color
-import com.bumptech.glide.Glide
-import com.google.firebase.database.FirebaseDatabase
-import com.example.pizzamaniaapp.ChatMessage // Adjust import based on package
 
 class ChatAdapter(private val messages: MutableList<ChatMessage>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val USER_MESSAGE = 1
     private val BOT_MESSAGE = 2
-    private val database = FirebaseDatabase.getInstance().reference
 
     override fun getItemViewType(position: Int): Int = if (messages[position].isUser) USER_MESSAGE else BOT_MESSAGE
 
@@ -31,30 +27,13 @@ class ChatAdapter(private val messages: MutableList<ChatMessage>) : RecyclerView
                 holder.textView.text = message.text
                 holder.textView.gravity = Gravity.END
                 holder.textView.setTextColor(Color.BLACK)
-                holder.imageView.visibility = View.GONE // No image for user messages
+                holder.imageView.visibility = View.GONE // Keep image hidden
             }
             is BotViewHolder -> {
                 holder.textView.text = message.text
                 holder.textView.gravity = Gravity.START
                 holder.textView.setTextColor(Color.BLUE)
-                holder.imageView.visibility = View.GONE // Temporarily disable image loading
-                // In onBindViewHolder for BotViewHolder
-                if (!message.isUser && !message.text.startsWith("Fetching menu...") && !message.text.startsWith("Error fetching menu:")) {
-                    holder.imageView.visibility = View.VISIBLE
-                    val itemName = message.text.substringAfter("• ").substringBefore(" .......")
-                    database.child("menu").orderByChild("name").equalTo(itemName.trim()).get().addOnSuccessListener { snapshot ->
-                        val imageUrl = snapshot.children.firstOrNull()?.child("imageURL")?.getValue(String::class.java)
-                        if (imageUrl != null) {
-                            Glide.with(holder.imageView.context).load(imageUrl).into(holder.imageView)
-                        } else {
-                            holder.imageView.visibility = View.GONE
-                        }
-                    }.addOnFailureListener {
-                        holder.imageView.visibility = View.GONE
-                    }
-                } else {
-                    holder.imageView.visibility = View.GONE
-                }
+                holder.imageView.visibility = View.GONE // Keep image hidden
             }
         }
     }
