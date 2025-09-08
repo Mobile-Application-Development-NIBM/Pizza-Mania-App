@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="20dp"
+    android:background="@drawable/glass_bg">
+    <!-- RelativeLayout: main popup container -->
+    <!-- background: glass-style background image -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+        <!-- LinearLayout: vertical layout to stack all input fields and buttons -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/popupTitleDeliveryman"
+            android:text="Add New Deliveryman"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_gravity="center"/>
+        <!-- TextView: popup title -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Deliveryman ID"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Deliveryman ID -->
+
+        <EditText
+            android:id="@+id/deliverymanIDInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Deliveryman ID (auto)"
+            android:inputType="text"
+            android:backgroundTint="#111111"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"
+            android:enabled="false"/>
+        <!-- EditText: shows auto-generated deliveryman ID, user cannot edit -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="User ID"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: User ID -->
+
+        <EditText
+            android:id="@+id/userIDInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="User ID (auto)"
+            android:inputType="text"
+            android:backgroundTint="#111111"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"
+            android:enabled="false"/>
+        <!-- EditText: shows auto-generated user ID, user cannot edit -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Name -->
+
+        <EditText
+            android:id="@+id/deliverymanNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name"
+            android:inputType="textPersonName"
+            android:backgroundTint="#111111"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for deliveryman full name -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Email -->
+
+        <EditText
+            android:id="@+id/deliverymanEmailInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:backgroundTint="#111111"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for deliveryman email -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Password -->
+
+        <EditText
+            android:id="@+id/deliverymanPasswordInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:backgroundTint="#111111"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for deliveryman password -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Contact Number"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Contact Number -->
+
+        <EditText
+            android:id="@+id/deliverymanContactInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Contact Number"
+            android:inputType="number"
+            android:backgroundTint="#111111"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for deliveryman phone number -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Address"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Address -->
+
+        <EditText
+            android:id="@+id/deliverymanAddressInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Address"
+            android:inputType="textPostalAddress"
+            android:backgroundTint="#111111"
+            android:textColor="#000000"
+            android:textColorHint="#666666"
+            android:layout_marginTop="3dp"/>
+        <!-- EditText: input for deliveryman address -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Availability"
+            android:textColor="#000000"
+            android:gravity="start"
+            android:layout_marginTop="10dp"/>
+        <!-- Label: Availability -->
+
+        <TextView
+            android:id="@+id/deliverymanAvailability"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Available"
+            android:textStyle="bold"
+            android:textColor="#008000"
+            android:gravity="center"
+            android:padding="8dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/status_bg"
+            android:clickable="false"
+            android:focusable="false"/>
+        <!-- TextView: shows availability (Available / Busy).
+             Non-interactive (no clicks, taps, etc.) -->
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="15dp">
+            <!-- LinearLayout: holds Cancel and Save buttons side by side -->
+
+            <Button
+                android:id="@+id/cancelDeliverymanBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancel"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"/>
+            <!-- Button: cancels the popup without saving -->
+
+            <Button
+                android:id="@+id/saveDeliverymanBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save"
+                android:layout_marginStart="10dp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#000000"/>
+            <!-- Button: saves the deliveryman info to database -->
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>
