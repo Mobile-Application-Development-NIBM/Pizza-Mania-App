@@ -95,41 +95,74 @@ public class LoginActivity extends AppCompatActivity {
         employeesRef.orderByChild("email").equalTo(email).get().addOnCompleteListener(task -> {
             if(task.isSuccessful() && task.getResult().exists()){
                 for(DataSnapshot snapshot : task.getResult().getChildren()) {
+                    String empEmail = snapshot.child("email").child("Value").getValue(String.class);
                     String empPassword = snapshot.child("password").getValue(String.class);
-                    if(password.equals(empPassword)) {
+
+                    if(empPassword == null && empEmail == null) {
+                        Toast.makeText(LoginActivity.this, "Employee data corrupted ", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if(password.equals(empPassword) && email.equals(empEmail)) {
                         saveSession("Employee", email, password);
                         redirectToHome("Employee");
-                        return;
+                        return;  // stop here if employee matches
                     }
                 }
                 Toast.makeText(LoginActivity.this, "Invalid password for employee", Toast.LENGTH_SHORT).show();
             }
             else {
-                //Checking CUSTOMER in Firebase
-                mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(authTask -> {
-                            if(authTask.isSuccessful()){
-                                FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                                if(firebaseUser != null){
-                                    DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-                                    usersRef.orderByChild("email").equalTo(email).get().addOnCompleteListener(userTask  ->{
-                                        if(userTask.isSuccessful() && userTask.getResult().exists()){
-                                            for (DataSnapshot userSnapshot : userTask.getResult().getChildren()){
-                                                String userID = userSnapshot.child("userID").getValue(String.class);
-                                                saveSession("Customer", email,userID);
-                                                redirectToHome("Customer");
+                //Cheching for customers
+                loginCustomer(email, password);
+            }
+        })
+                .addOnFailureListener(e->
+                        Toast.makeText(LoginActivity.this, "Employee check failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+
+    }
+
+    private void loginCustomer (String email, String password){
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(authTask -> {
+                    if(authTask.isSuccessful()){
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+
+                        if(firebaseUser == null){
+                            Toast.makeText(LoginActivity.this, "Unexpected error: Firebase user is null", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+                        usersRef.orderByChild("email").equalTo(email).get()
+                                .addOnCompleteListener(userTask -> {
+                                    if(userTask.isSuccessful() && userTask.getResult().exists()){
+                                        for (DataSnapshot userSnapshot : userTask.getResult().getChildren()){
+                                            String userID = userSnapshot.child("userID").getValue(String.class);
+
+                                            if(userID == null){
+                                                Toast.makeText(LoginActivity.this, "User ID missing in database", Toast.LENGTH_SHORT).show();
                                                 return;
                                             }
+
+                                            saveSession("Customer", email, userID);
+                                            redirectToHome("Customer");
+                                            return;
                                         }
-                                    });
-                                }
-                            }
-                            else {
-                                Toast.makeText(LoginActivity.this, "Login failed: " + authTask.getException().getMessage(), Toast.LENGTH_LONG).show();
-                            }
-                        });
-            }
-        });
+                                    }
+                                    else {
+                                        Toast.makeText(LoginActivity.this, "User record not found in database", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(e->
+                                        Toast.makeText(LoginActivity.this, "Database error: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                                );
+                    }
+                    else {
+                        String errorMsg = authTask.getException() != null ? authTask.getException().getMessage() : "Unknown error";
+                        Toast.makeText(LoginActivity.this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private  void saveSession(String role, String email, String userID){
