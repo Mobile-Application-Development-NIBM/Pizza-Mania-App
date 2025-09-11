@@ -9,6 +9,8 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
@@ -44,6 +46,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -596,7 +599,53 @@ public class CustomerHomeActivity extends AppCompatActivity {
 
     // ---------------- MODELS ----------------
     public static class Branch { public String branchID; public String name; public double latitude; public double longitude; public long contact; public Branch() {} }
-    public static class MenuItem { public String menuID, name, category, description, imageURL; public double price; public List<String> branches; public MenuItem() {} }
+    public static class MenuItem implements Parcelable {
+        public String menuID, name, category, description, imageURL;
+        public double price;
+        public List<String> branches;
+
+        public MenuItem() {}
+
+        protected MenuItem(Parcel in) {
+            menuID = in.readString();
+            name = in.readString();
+            category = in.readString();
+            description = in.readString();
+            imageURL = in.readString();
+            price = in.readDouble();
+            branches = in.createStringArrayList();
+        }
+
+        public static final Parcelable.Creator<MenuItem> CREATOR = new Creator<MenuItem>() {
+            @Override
+            public MenuItem createFromParcel(Parcel in) {
+                return new MenuItem(in);
+            }
+
+            @Override
+            public MenuItem[] newArray(int size) {
+                return new MenuItem[size];
+            }
+        };
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel parcel, int i) {
+            parcel.writeString(menuID);
+            parcel.writeString(name);
+            parcel.writeString(category);
+            parcel.writeString(description);
+            parcel.writeString(imageURL);
+            parcel.writeDouble(price);
+            parcel.writeStringList(branches);
+        }
+    }
+
+
     public static class CartItem { public String menuID, name, imageURL; public double price; public int quantity; public CartItem() {} public CartItem(String menuID, String name, double price, int quantity, String imageURL) { this.menuID = menuID; this.name = name; this.price = price; this.quantity = quantity; this.imageURL = imageURL; } }
     public static class Cart { public String cartID, branchID, customerID; public List<CartItem> items; public int totalItems; public double totalPrice; public Cart() {} public Cart(String cartID, String branchID, String customerID) { this.cartID = cartID; this.branchID = branchID; this.customerID = customerID; this.items = new ArrayList<>(); this.totalItems = 0; this.totalPrice = 0; } }
     public static class Order {

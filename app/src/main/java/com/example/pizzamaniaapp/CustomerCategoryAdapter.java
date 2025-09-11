@@ -103,8 +103,12 @@ public class CustomerCategoryAdapter extends RecyclerView.Adapter<CustomerCatego
         holder.itemView.findViewById(R.id.viewAllButton).setOnClickListener(v -> {
             if (menuList != null && !menuList.isEmpty()) {
                 Intent intent = new Intent(context, MenuUnderCategoryActivity.class);
-                intent.putExtra("branchID", currentBranchID);   // pass branch
-                intent.putExtra("categoryName", category);      // optional: filter by category
+                intent.putExtra("branchID", currentBranchID);           // pass branch
+                intent.putExtra("category_name", category);             // pass category
+                intent.putParcelableArrayListExtra(                      // ✅ use Parcelable
+                        "menu_list",
+                        new ArrayList<>(menuList)
+                );
                 context.startActivity(intent);
             } else {
                 Log.d("CustomerCategoryAdapter", "View All clicked but menuList is empty for category: " + category);

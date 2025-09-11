@@ -63,25 +63,40 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
 
         setupEdgeToEdge();
 
-        // 1️⃣ Initialize Firebase and location first
+        // 1️⃣ Initialize Firebase and location
         dbRef = FirebaseDatabase.getInstance().getReference();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         recyclerView = findViewById(R.id.viewAllRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MenuUnderCategoryAdapter(categoryMenus, this::showMenuPopup);
-        recyclerView.setAdapter(adapter);
 
-        // 2️⃣ Read branchID and category from intent, then load menus
+        // Get category name TextView
+        TextView categoryText = findViewById(R.id.categoryText);
+
+        // 2️⃣ Read branchID, category name, and menu list from intent
         if (getIntent() != null) {
             String intentBranchID = getIntent().getStringExtra("branchID");
             if (intentBranchID != null) branchID = intentBranchID;
 
-            String categoryFilter = getIntent().getStringExtra("categoryName"); // optional
-            loadMenusForBranch(branchID, categoryFilter);
+            String categoryName = getIntent().getStringExtra("category_name");
+            if (categoryName != null) categoryText.setText(categoryName);
+
+            // ✅ Use Parcelable instead of Serializable
+            List<CustomerHomeActivity.MenuItem> menuList =
+                    getIntent().getParcelableArrayListExtra("menu_list");
+
+            if (menuList != null) {
+                categoryMenus.clear();
+                categoryMenus.addAll(menuList);
+            } else {
+                loadMenusForBranch(branchID, categoryName);
+            }
         } else {
             loadMenusForBranch(branchID, null);
         }
+
+        adapter = new MenuUnderCategoryAdapter(categoryMenus, this::showMenuPopup);
+        recyclerView.setAdapter(adapter);
 
         // 3️⃣ Load cart after dbRef is ready
         loadCart(branchID, currentUserID);
