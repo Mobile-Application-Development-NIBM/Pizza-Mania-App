@@ -495,8 +495,13 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
         String imageUrl = imageInput.getText().toString().trim();  // Get image URL
 
         if (id.isEmpty() || name.isEmpty() || category.isEmpty() || priceStr.isEmpty()) {
-            showCustomToast("Please fill all required fields");    // Show warning if any required field is empty
-            return;                                                // Stop saving
+            showCustomToast("Please fill all required fields");
+            return;
+        }
+
+        if (selectedBranchIDs == null || selectedBranchIDs.isEmpty()) {
+            showCustomToast("Please select at least one branch");
+            return;
         }
 
         double price;

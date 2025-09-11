@@ -173,7 +173,7 @@
 
     <!-- Chat icon FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/chatFab"
+        android:id="@+id/chatbotButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -183,15 +183,4 @@
         android:contentDescription="Open Chatbot"
         android:src="@android:drawable/ic_dialog_email"
         app:fabSize="normal" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/chatbotButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_chatbot3"
-        android:contentDescription="Chatbot"
-        android:layout_alignParentEnd="true"
-        android:layout_above="@id/bottomAppBar"
-        android:layout_margin="16dp" />
-
 </RelativeLayout>

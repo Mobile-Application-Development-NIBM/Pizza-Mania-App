@@ -2,6 +2,7 @@ package com.example.pizzamaniaapp;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -72,7 +73,8 @@ public class CustomerHomeActivity extends AppCompatActivity {
     // Loading dialog
     private AlertDialog loadingDialog;
 
-    private final String currentUserID = "u001"; // Replace with actual logged-in user
+    private String currentUsername; // will be initialized from SharedPreferences
+    private String currentUserID;
 
     private List<String> searchSuggestions = new ArrayList<>();
     private ArrayAdapter<String> suggestionsAdapter;
@@ -107,6 +109,20 @@ public class CustomerHomeActivity extends AppCompatActivity {
 
         setupCartListener(currentUserID);
         setupSearch();
+
+        SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+        currentUserID = prefs.getString("userID", "u001"); // fallback to u001
+
+// Fetch username from Firebase users table
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        usersRef.child(currentUserID).get().addOnCompleteListener(task -> {
+            if(task.isSuccessful() && task.getResult().exists()){
+                currentUsername = task.getResult().child("name").getValue(String.class); // assuming "name" is stored in DB
+                if(currentUsername == null) currentUsername = "User";
+            } else {
+                currentUsername = "User";
+            }
+        });
     }
 
     private void updateCartBadge() {
@@ -511,7 +527,7 @@ public class CustomerHomeActivity extends AppCompatActivity {
                                 newOrderID,
                                 currentCart.branchID,
                                 currentUserID,
-                                "Niviru", "Random Address, Colombo",
+                                currentUsername, // use the username fetched from Firebase
                                 6.9271, 79.8612,
                                 "",
                                 "Order Pending",
@@ -519,7 +535,7 @@ public class CustomerHomeActivity extends AppCompatActivity {
                                 timestamp,
                                 0,
                                 "Pending",
-                                new ArrayList<>(currentCart.items) // ✅ Save ordered items
+                                new ArrayList<>(currentCart.items)
                         );
 
                         dbRef.child("orders").child(newOrderID).setValue(order)
@@ -649,7 +665,7 @@ public class CustomerHomeActivity extends AppCompatActivity {
     public static class CartItem { public String menuID, name, imageURL; public double price; public int quantity; public CartItem() {} public CartItem(String menuID, String name, double price, int quantity, String imageURL) { this.menuID = menuID; this.name = name; this.price = price; this.quantity = quantity; this.imageURL = imageURL; } }
     public static class Cart { public String cartID, branchID, customerID; public List<CartItem> items; public int totalItems; public double totalPrice; public Cart() {} public Cart(String cartID, String branchID, String customerID) { this.cartID = cartID; this.branchID = branchID; this.customerID = customerID; this.items = new ArrayList<>(); this.totalItems = 0; this.totalPrice = 0; } }
     public static class Order {
-        public String orderID, branchID, customerID, customerName, customerAddress,
+        public String orderID, branchID, customerID, customerName,
                 assignedDeliverymanID, status, paymentStatus;
         public double customerLat, customerLng, totalPrice;
         public long timestamp, deliveredTimestamp;
@@ -658,7 +674,7 @@ public class CustomerHomeActivity extends AppCompatActivity {
         public Order() {}
 
         public Order(String orderID, String branchID, String customerID,
-                     String customerName, String customerAddress,
+                     String customerName,
                      double customerLat, double customerLng,
                      String assignedDeliverymanID, String status,
                      double totalPrice, long timestamp, long deliveredTimestamp,
@@ -667,7 +683,6 @@ public class CustomerHomeActivity extends AppCompatActivity {
             this.branchID = branchID;
             this.customerID = customerID;
             this.customerName = customerName;
-            this.customerAddress = customerAddress;
             this.customerLat = customerLat;
             this.customerLng = customerLng;
             this.assignedDeliverymanID = assignedDeliverymanID;
