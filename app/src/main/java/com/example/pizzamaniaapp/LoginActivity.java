@@ -92,44 +92,109 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         //CHeck Employee in Firebase
-        employeesRef.orderByChild("email").equalTo(email).get().addOnCompleteListener(task -> {
-            if(task.isSuccessful() && task.getResult().exists()){
-                for(DataSnapshot snapshot : task.getResult().getChildren()) {
-                    String empPassword = snapshot.child("password").getValue(String.class);
-                    if(password.equals(empPassword)) {
-                        saveSession("Employee", email, password);
-                        redirectToHome("Employee");
-                        return;
+        employeesRef.orderByChild("email").equalTo(email).get()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful() && task.getResult().exists()){
+                        for(DataSnapshot snapshot : task.getResult().getChildren()) {
+                            String empEmail = snapshot.child("email").getValue(String.class);
+                            String empPassword = snapshot.child("password").getValue(String.class);
+
+                            if(empEmail == null || empPassword == null) {
+                                Toast.makeText(LoginActivity.this, "Employee data missing", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            if(email.equals(empEmail) && password.equals(empPassword)) {
+                                saveSession("Employee", email, password);
+                                redirectToHome("Employee");
+                                return;
+                            }
+                        }
+                        Toast.makeText(LoginActivity.this, "Invalid password for employee", Toast.LENGTH_SHORT).show();
                     }
-                }
-                Toast.makeText(LoginActivity.this, "Invalid password for employee", Toast.LENGTH_SHORT).show();
-            }
-            else {
-                //Checking CUSTOMER in Firebase
-                mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(authTask -> {
-                            if(authTask.isSuccessful()){
-                                FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                                if(firebaseUser != null){
-                                    DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-                                    usersRef.orderByChild("email").equalTo(email).get().addOnCompleteListener(userTask  ->{
-                                        if(userTask.isSuccessful() && userTask.getResult().exists()){
-                                            for (DataSnapshot userSnapshot : userTask.getResult().getChildren()){
-                                                String userID = userSnapshot.child("userID").getValue(String.class);
-                                                saveSession("Customer", email,userID);
-                                                redirectToHome("Customer");
+                    else {
+                        //Cheching for customers
+                        loginDeliveryman(email, password);
+                    }
+                })
+                .addOnFailureListener(e->
+                        Toast.makeText(LoginActivity.this, "Employee check failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+
+    }
+
+    private void loginDeliveryman(String email, String password) {
+        DatabaseReference deliveryRef = FirebaseDatabase.getInstance().getReference("deliverymen");
+        deliveryRef.orderByChild("email").equalTo(email).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        for (DataSnapshot snapshot : task.getResult().getChildren()) {
+                            String delEmail = snapshot.child("email").getValue(String.class);
+                            String delPassword = snapshot.child("password").getValue(String.class);
+                            String delID = snapshot.child("delID").getValue(String.class);
+
+                            if (delEmail == null || delPassword == null) {
+                                Toast.makeText(LoginActivity.this, "Deliveryman data missing", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            if (email.equals(delEmail) && password.equals(delPassword)) {
+                                saveSession("Deliveryman", email, delID);
+                                redirectToHome("Deliveryman");
+                                return;
+                            }
+                        }
+                        Toast.makeText(LoginActivity.this, "Invalid password for deliveryman", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // If not Deliveryman → check Customer
+                        loginCustomer(email, password);
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(LoginActivity.this, "Deliveryman check failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
+    private void loginCustomer (String email, String password){
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(authTask -> {
+                    if(authTask.isSuccessful()){
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+
+                        if(firebaseUser == null){
+                            Toast.makeText(LoginActivity.this, "Unexpected error: Firebase user is null", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+                        usersRef.orderByChild("email").equalTo(email).get()
+                                .addOnCompleteListener(userTask -> {
+                                    if(userTask.isSuccessful() && userTask.getResult().exists()){
+                                        for (DataSnapshot userSnapshot : userTask.getResult().getChildren()){
+                                            String userID = userSnapshot.child("userID").getValue(String.class);
+
+                                            if(userID == null){
+                                                Toast.makeText(LoginActivity.this, "User ID missing in database", Toast.LENGTH_SHORT).show();
                                                 return;
                                             }
+
+                                            saveSession("Customer", email, userID);
+                                            redirectToHome("Customer");
+                                            return;
                                         }
-                                    });
-                                }
-                            }
-                            else {
-                                Toast.makeText(LoginActivity.this, "Login failed: " + authTask.getException().getMessage(), Toast.LENGTH_LONG).show();
-                            }
-                        });
-            }
-        });
+                                    }
+                                    else {
+                                        Toast.makeText(LoginActivity.this, "User record not found in database", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(e->
+                                        Toast.makeText(LoginActivity.this, "Database error: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                                );
+                    }
+                    else {
+                        String errorMsg = authTask.getException() != null ? authTask.getException().getMessage() : "Unknown error";
+                        Toast.makeText(LoginActivity.this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private  void saveSession(String role, String email, String userID){
@@ -149,6 +214,9 @@ public class LoginActivity extends AppCompatActivity {
                 break;
             case "Employee":
                 intent = new Intent(this, EmployeeHomeActivity.class);
+                break;
+            case "Deliveryman":
+                intent = new Intent(this, DeliverymanHomeActivity.class);
                 break;
             case "Customer":
             default:

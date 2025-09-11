@@ -1,6 +1,8 @@
 package com.example.pizzamaniaapp
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.GenericTypeIndicator
+import android.util.Log
 
 class ChatbotDialogFragment : DialogFragment() {
     private lateinit var recyclerView: RecyclerView
@@ -19,9 +23,11 @@ class ChatbotDialogFragment : DialogFragment() {
     private lateinit var userInput: EditText
     private lateinit var sendButton: Button
     private val messages = mutableListOf<ChatMessage>()
-    private val database = FirebaseDatabase.getInstance().reference
+    private val database = FirebaseDatabase.getInstance("https://pizzamaniaapp-89938-default-rtdb.firebaseio.com/").reference
     private val auth = FirebaseAuth.getInstance()
-    private var currentPizza: String? = null // Track selected pizza for context
+    private var currentPizza: String? = null
+    private var selectedBranch: String? = null
+    private val handler = Handler(Looper.getMainLooper()) // For timeout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,6 +47,7 @@ class ChatbotDialogFragment : DialogFragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         sendButton.setOnClickListener {
+            if (!isAdded) return@setOnClickListener // Prevent crash if fragment is detached
             val message = userInput.text.toString().trim()
             if (message.isNotEmpty()) {
                 messages.add(ChatMessage(message, true))
@@ -52,37 +59,65 @@ class ChatbotDialogFragment : DialogFragment() {
         }
 
         // Welcome message
-        messages.add(ChatMessage("👋 Welcome to PizzaBot! 🍕\n" +
-                "You can try commands like:\n" +
-                "👉 'show menu'\n" +
-                "👉 'track order'\n" +
-                "👉 'update profile'\n" +
-                "👉 'help'\n\n" +
-                "Or just say hi to get started!", false))
-        chatAdapter.notifyItemInserted(messages.size - 1)
+        if (isAdded) {
+            messages.add(ChatMessage("👋 Welcome to PizzaBot! 🍕\n" +
+                    "Please select a branch with 'select branch <branch_name>' (e.g., 'select branch Colombo') or type 'help' to start.", false))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
+        }
+
+        // Test Firebase connectivity
+        database.child("test").setValue("test").addOnSuccessListener {
+            Log.d("Chatbot", "Firebase write test successful")
+        }.addOnFailureListener { exception ->
+            Log.e("Chatbot", "Firebase write test failed: ${exception.message}", exception)
+        }
+        database.child("test").removeValue() // Clean up
     }
 
     override fun onStart() {
         super.onStart()
         dialog?.window?.apply {
-            val width = (resources.displayMetrics.widthPixels * 0.9).toInt() // 90% of screen width
-            val height = (resources.displayMetrics.heightPixels * 0.6).toInt() // 60% of screen height
+            val width = (resources.displayMetrics.widthPixels * 0.9).toInt()
+            val height = (resources.displayMetrics.heightPixels * 0.6).toInt()
             setLayout(width, height)
-            setGravity(Gravity.CENTER) // center it
+            setGravity(Gravity.CENTER)
             setBackgroundDrawableResource(android.R.color.transparent)
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        handler.removeCallbacksAndMessages(null) // Prevent leaks
+    }
 
     private fun processUserMessage(message: String) {
+        if (!isAdded) return // Prevent crash if fragment is detached
         val lowerMessage = message.lowercase()
+        Log.d("Chatbot", "Processing user message: $lowerMessage")
         val response = when {
-
             listOf("hi", "hello", "yo", "hey").any { lowerMessage.contains(it) } -> {
-                "👋 Hey there! Welcome back to PizzaBot. 🍕 Which pizza would you like today?\n" +
-                        "👉 I’d recommend trying our classic Pepperoni!"
+                "👋 Hey there! Welcome back to PizzaBot. 🍕 Please select a branch with 'select branch <branch_name>' or type 'show menu' to start."
             }
-            lowerMessage.contains("show menu") || lowerMessage.contains("list pizzas") -> showMenu()
+            lowerMessage.contains("show menu") || lowerMessage.contains("list items") -> showMenu()
+            lowerMessage.startsWith("select branch") -> {
+                val branchInput = lowerMessage.replace("select branch", "").trim()
+                val branchMap = mapOf("b001" to "Colombo", "b002" to "Galle", "b003" to "Kandy", "b004" to "Jaffna", "b005" to "Matara")
+                val branchCode = branchMap.entries.find { it.value.lowercase() == branchInput.lowercase() }?.key
+                Log.d("Chatbot", "Branch input: $branchInput | Selected branch code: $branchCode")
+                if (branchCode != null) {
+                    selectedBranch = branchCode
+                    messages.add(ChatMessage("Branch selected: ${branchMap[branchCode]}. Now showing menu...", false))
+                    chatAdapter.notifyItemInserted(messages.size - 1)
+                    recyclerView.scrollToPosition(messages.size - 1)
+                    showMenu()
+                } else {
+                    messages.add(ChatMessage("Invalid branch. Available branches: ${branchMap.values.joinToString(", ")}", false))
+                    chatAdapter.notifyItemInserted(messages.size - 1)
+                    recyclerView.scrollToPosition(messages.size - 1)
+                }
+                return
+            }
             lowerMessage.contains("vegetarian") || lowerMessage.contains("non-veg") -> selectCategory(lowerMessage)
             lowerMessage.contains("add topping") || lowerMessage.contains("extra") -> addToppings(lowerMessage)
             lowerMessage.contains("add to cart") -> addToCart()
@@ -96,87 +131,232 @@ class ChatbotDialogFragment : DialogFragment() {
             lowerMessage.contains("support") || lowerMessage.contains("help") -> contactSupport()
             lowerMessage.contains("settings") || lowerMessage.contains("password") || lowerMessage.contains("log out") -> manageAccount(lowerMessage)
             else -> {
-                // Check if user is selecting a pizza from the menu
                 var selected = false
-                database.child("pizzas").get().addOnSuccessListener { snapshot ->
-                    for (pizza in snapshot.children) {
-                        val name = pizza.child("name").getValue(String::class.java)?.lowercase() ?: ""
-                        if (lowerMessage.contains(name)) {
-                            currentPizza = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-                            messages.add(ChatMessage("Selected $currentPizza. Add toppings (e.g., 'add extra cheese') or say 'add to cart'.", false))
-                            chatAdapter.notifyItemInserted(messages.size - 1)
-                            selected = true
+                if (selectedBranch != null) {
+                    database.child("menu").get().addOnSuccessListener { snapshot ->
+                        if (!isAdded) return@addOnSuccessListener
+                        Log.d("Chatbot", "Menu selection - Snapshot exists: ${snapshot.exists()} | Count: ${snapshot.childrenCount}")
+                        for (item in snapshot.children) {
+                            val branches = item.child("branches").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+                            val itemName = item.child("name").getValue(String::class.java)?.lowercase() ?: ""
+                            Log.d("Chatbot", "Checking item: $itemName | Branches: $branches | User input: $lowerMessage")
+                            if (branches.contains(selectedBranch) && itemName.contains(lowerMessage)) {
+                                currentPizza = item.child("name").getValue(String::class.java)
+                                messages.add(ChatMessage("Selected $currentPizza. Add toppings (e.g., 'add extra cheese') or say 'add to cart'.", false))
+                                chatAdapter.notifyItemInserted(messages.size - 1)
+                                selected = true
+                            }
                         }
-                    }
-                    if (!selected) {
-                        messages.add(ChatMessage("I didn't understand. Try 'show menu', 'track order', 'update profile', or 'help'.", false))
+                        if (!selected) {
+                            messages.add(ChatMessage("I didn't understand. Try 'show menu', 'select branch <branch_name>', or 'help'.", false))
+                            chatAdapter.notifyItemInserted(messages.size - 1)
+                        }
+                        recyclerView.scrollToPosition(messages.size - 1)
+                    }.addOnFailureListener { exception ->
+                        if (!isAdded) return@addOnFailureListener
+                        Log.e("Chatbot", "Error selecting menu item: ${exception.message}", exception)
+                        messages.add(ChatMessage("Error fetching menu items: ${exception.message}", false))
                         chatAdapter.notifyItemInserted(messages.size - 1)
+                        recyclerView.scrollToPosition(messages.size - 1)
                     }
+                } else {
+                    messages.add(ChatMessage("Please select a branch first with 'select branch <branch_name>' to view menu items.", false))
+                    chatAdapter.notifyItemInserted(messages.size - 1)
+                    recyclerView.scrollToPosition(messages.size - 1)
                 }
-                "Processing..."
+                return
             }
         }
-        messages.add(ChatMessage(response, false))
-        chatAdapter.notifyItemInserted(messages.size - 1)
+        if (isAdded) {
+            messages.add(ChatMessage(response, false))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
+        }
     }
 
     private fun showMenu(): String {
-        var response = "Menu:\n"
-        database.child("pizzas").get().addOnSuccessListener { snapshot ->
-            for (pizza in snapshot.children) {
-                val name = pizza.child("name").getValue(String::class.java) ?: ""
-                val price = pizza.child("price").getValue(Double::class.java) ?: 0.0
-                response += "$name - $$price\n"
+        Log.d("Chatbot", "Starting menu fetch for branch: $selectedBranch")
+        if (selectedBranch == null) {
+            if (isAdded) {
+                messages.add(ChatMessage("Please select a branch first with 'select branch <branch_name>'.", false))
+                chatAdapter.notifyItemInserted(messages.size - 1)
+                recyclerView.scrollToPosition(messages.size - 1)
             }
-            messages.add(ChatMessage(response, false))
-            chatAdapter.notifyItemInserted(messages.size - 1)
+            return "Please select a branch first."
         }
-        return "Fetching menu..."
+
+        // Set up timeout for Firebase query (10 seconds)
+        val timeoutRunnable = Runnable {
+            if (isAdded) {
+                Log.e("Chatbot", "Menu fetch timed out for branch: $selectedBranch")
+                messages.add(ChatMessage("Error: Menu fetch timed out. Please check your network and try again.", false))
+                chatAdapter.notifyItemInserted(messages.size - 1)
+                recyclerView.scrollToPosition(messages.size - 1)
+            }
+        }
+        handler.postDelayed(timeoutRunnable, 10000)
+
+        database.child("menu").get().addOnSuccessListener { snapshot ->
+            handler.removeCallbacks(timeoutRunnable) // Cancel timeout
+            if (!isAdded) return@addOnSuccessListener
+            Log.d("Chatbot", "Snapshot exists: ${snapshot.exists()} | Child count: ${snapshot.childrenCount}")
+            if (!snapshot.exists() || snapshot.childrenCount == 0L) {
+                Log.w("Chatbot", "No menu items found in the database.")
+                messages.add(ChatMessage("No menu items found in the database.", false))
+                chatAdapter.notifyItemInserted(messages.size - 1)
+                recyclerView.scrollToPosition(messages.size - 1)
+                return@addOnSuccessListener
+            }
+
+            var hasItems = false
+            for (item in snapshot.children) {
+                Log.d("Chatbot", "Item key: ${item.key} | Value: ${item.value}")
+                val branches = item.child("branches").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+                Log.d("Chatbot", "Branches for ${item.key}: $branches | Selected branch: $selectedBranch")
+                if (branches.contains(selectedBranch)) {
+                    hasItems = true
+                    val name = item.child("name").getValue(String::class.java) ?: "Unknown Item"
+                    val priceValue = item.child("price").value
+                    val price = when (priceValue) {
+                        is Double -> priceValue
+                        is Long -> priceValue.toDouble()
+                        else -> 0.0
+                    }
+                    val description = item.child("description").getValue(String::class.java) ?: "No description"
+                    Log.d("Chatbot", "Parsed item - Name: $name | Price: $price | Description: $description")
+                    val paddedName = String.format("%-20s", name)
+                    val priceText = String.format("LKR %.0f", price)
+                    val formattedText = "• $paddedName ....... $priceText\n  - $description"
+                    Log.d("Chatbot", "Adding menu item: $formattedText")
+                    messages.add(ChatMessage(formattedText, false))
+                    chatAdapter.notifyItemInserted(messages.size - 1)
+                } else {
+                    Log.d("Chatbot", "Item ${item.key} not available for branch $selectedBranch")
+                }
+            }
+            if (!hasItems) {
+                Log.w("Chatbot", "No menu items available for branch: $selectedBranch")
+                messages.add(ChatMessage("No menu items available for $selectedBranch.", false))
+                chatAdapter.notifyItemInserted(messages.size - 1)
+            }
+            recyclerView.scrollToPosition(messages.size - 1)
+        }.addOnFailureListener { exception ->
+            handler.removeCallbacks(timeoutRunnable) // Cancel timeout
+            if (!isAdded) return@addOnFailureListener
+            Log.e("Chatbot", "Error fetching menu: ${exception.message}", exception)
+            messages.add(ChatMessage("Error fetching menu for $selectedBranch: ${exception.message}", false))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
+        }
+        return "Fetching menu for $selectedBranch..."
     }
 
     private fun selectCategory(message: String): String {
         val category = if (message.contains("vegetarian")) "Vegetarian" else "Non-Vegetarian"
-        var response = "Showing $category pizzas:\n"
-        database.child("pizzas").orderByChild("category").equalTo(category).get().addOnSuccessListener { snapshot ->
-            for (pizza in snapshot.children) {
-                val name = pizza.child("name").getValue(String::class.java) ?: ""
-                val price = pizza.child("price").getValue(Double::class.java) ?: 0.0
-                response += "$name - $$price\n"
+        var response = "Showing $category items:\n"
+        if (selectedBranch != null) {
+            database.child("menu").orderByChild("category").equalTo(category).get().addOnSuccessListener { snapshot ->
+                if (!isAdded) return@addOnSuccessListener
+                Log.d("Chatbot", "Category $category - Snapshot exists: ${snapshot.exists()} | Count: ${snapshot.childrenCount}")
+                if (!snapshot.exists() || snapshot.childrenCount == 0L) {
+                    messages.add(ChatMessage("No $category items found for $selectedBranch.", false))
+                    chatAdapter.notifyItemInserted(messages.size - 1)
+                    recyclerView.scrollToPosition(messages.size - 1)
+                    return@addOnSuccessListener
+                }
+                for (item in snapshot.children) {
+                    val branches = item.child("branches").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+                    if (branches.contains(selectedBranch)) {
+                        val name = item.child("name").getValue(String::class.java) ?: ""
+                        val priceValue = item.child("price").value
+                        val price = when (priceValue) {
+                            is Double -> priceValue
+                            is Long -> priceValue.toDouble()
+                            else -> 0.0
+                        }
+                        response += "$name - LKR $price\n"
+                    }
+                }
+                messages.add(ChatMessage(response, false))
+                chatAdapter.notifyItemInserted(messages.size - 1)
+                recyclerView.scrollToPosition(messages.size - 1)
+            }.addOnFailureListener { exception ->
+                if (!isAdded) return@addOnFailureListener
+                Log.e("Chatbot", "Error fetching $category items: ${exception.message}", exception)
+                messages.add(ChatMessage("Error fetching $category items: ${exception.message}", false))
+                chatAdapter.notifyItemInserted(messages.size - 1)
+                recyclerView.scrollToPosition(messages.size - 1)
             }
+        } else {
+            response = "Please select a branch first with 'select branch <branch_name>'."
             messages.add(ChatMessage(response, false))
             chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
         }
-        return "Fetching $category pizzas..."
+        return "Fetching $category items..."
     }
 
     private fun addToppings(message: String): String {
-        if (currentPizza == null) return "Please select a pizza first (e.g., 'Margherita')."
+        if (currentPizza == null) return "Please select a menu item first."
         val topping = message.substringAfter("add").trim()
         return "Added $topping to $currentPizza!"
     }
 
     private fun addToCart(): String {
         val userId = auth.currentUser?.uid ?: return "Please log in to add to cart."
-        if (currentPizza == null) return "Please select a pizza first (e.g., 'Margherita')."
-        database.child("carts").child(userId).push().setValue(mapOf("pizza" to currentPizza, "toppings" to "Extra Cheese"))
-        return "$currentPizza added to cart! Say 'show cart' or 'pay'."
+        if (currentPizza == null) return "Please select a menu item first."
+        database.child("menu").orderByChild("name").equalTo(currentPizza).get().addOnSuccessListener { snapshot ->
+            if (!isAdded) return@addOnSuccessListener
+            Log.d("Chatbot", "Add to cart - Snapshot exists: ${snapshot.exists()} | Count: ${snapshot.childrenCount}")
+            val priceValue = snapshot.children.firstOrNull()?.child("price")?.value
+            val price = when (priceValue) {
+                is Double -> priceValue
+                is Long -> priceValue.toDouble()
+                else -> 0.0
+            }
+            database.child("carts").child(userId).push().setValue(mapOf("name" to currentPizza, "price" to price))
+            messages.add(ChatMessage("$currentPizza added to cart! Say 'show cart' or 'pay'.", false))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
+        }.addOnFailureListener { exception ->
+            if (!isAdded) return@addOnFailureListener
+            Log.e("Chatbot", "Error adding to cart: ${exception.message}", exception)
+            messages.add(ChatMessage("Error adding to cart: ${exception.message}", false))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
+        }
+        return "Adding $currentPizza to cart..."
     }
 
     private fun viewCart(): String {
         val userId = auth.currentUser?.uid ?: return "Please log in to view cart."
         var response = "Your Cart:\n"
         database.child("carts").child(userId).get().addOnSuccessListener { snapshot ->
+            if (!isAdded) return@addOnSuccessListener
+            Log.d("Chatbot", "View cart - Snapshot exists: ${snapshot.exists()} | Count: ${snapshot.childrenCount}")
             if (!snapshot.exists()) {
                 response = "Your cart is empty."
             } else {
                 for (item in snapshot.children) {
-                    val pizza = item.child("pizza").getValue(String::class.java) ?: ""
-                    val toppings = item.child("toppings").getValue(String::class.java) ?: ""
-                    response += "$pizza ($toppings)\n"
+                    val name = item.child("name").getValue(String::class.java) ?: ""
+                    val priceValue = item.child("price").value
+                    val price = when (priceValue) {
+                        is Double -> priceValue
+                        is Long -> priceValue.toDouble()
+                        else -> 0.0
+                    }
+                    response += "$name - LKR $price\n"
                 }
             }
             messages.add(ChatMessage(response, false))
             chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
+        }.addOnFailureListener { exception ->
+            if (!isAdded) return@addOnFailureListener
+            Log.e("Chatbot", "Error fetching cart: ${exception.message}", exception)
+            messages.add(ChatMessage("Error fetching cart: ${exception.message}", false))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
         }
         return "Fetching cart..."
     }
@@ -185,18 +365,17 @@ class ChatbotDialogFragment : DialogFragment() {
         val userId = auth.currentUser?.uid ?: return "Please log in to pay."
         return when {
             message.contains("card online") -> {
-                // Stripe payment (placeholder)
                 "Redirecting to online card payment... [Stripe integration required]"
             }
             message.contains("card on delivery") -> {
                 database.child("orders").child(userId).push().setValue(
-                    mapOf("pizza" to currentPizza, "payment" to "Card on Delivery", "status" to "Pending")
+                    mapOf("name" to currentPizza, "payment" to "Card on Delivery", "status" to "Pending")
                 )
                 "Order placed with card on delivery. You'll provide card details to the delivery agent."
             }
             message.contains("cash") || message.contains("cod") -> {
                 database.child("orders").child(userId).push().setValue(
-                    mapOf("pizza" to currentPizza, "payment" to "Cash on Delivery", "status" to "Pending")
+                    mapOf("name" to currentPizza, "payment" to "Cash on Delivery", "status" to "Pending")
                 )
                 "Order placed with cash on delivery."
             }
@@ -208,17 +387,26 @@ class ChatbotDialogFragment : DialogFragment() {
         val userId = auth.currentUser?.uid ?: return "Please log in to track orders."
         var response = "Order Status:\n"
         database.child("orders").child(userId).get().addOnSuccessListener { snapshot ->
+            if (!isAdded) return@addOnSuccessListener
+            Log.d("Chatbot", "Track order - Snapshot exists: ${snapshot.exists()} | Count: ${snapshot.childrenCount}")
             if (!snapshot.exists()) {
                 response = "No orders found."
             } else {
                 for (order in snapshot.children) {
-                    val pizza = order.child("pizza").getValue(String::class.java) ?: ""
+                    val name = order.child("name").getValue(String::class.java) ?: ""
                     val status = order.child("status").getValue(String::class.java) ?: ""
-                    response += "Order #${order.key}: $pizza ($status)\n"
+                    response += "Order #${order.key}: $name ($status)\n"
                 }
             }
             messages.add(ChatMessage(response, false))
             chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
+        }.addOnFailureListener { exception ->
+            if (!isAdded) return@addOnFailureListener
+            Log.e("Chatbot", "Error tracking order: ${exception.message}", exception)
+            messages.add(ChatMessage("Error tracking order: ${exception.message}", false))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
         }
         return "Checking order status..."
     }
@@ -227,17 +415,26 @@ class ChatbotDialogFragment : DialogFragment() {
         val userId = auth.currentUser?.uid ?: return "Please log in to view order history."
         var response = "Order History:\n"
         database.child("orders").child(userId).get().addOnSuccessListener { snapshot ->
+            if (!isAdded) return@addOnSuccessListener
+            Log.d("Chatbot", "Order history - Snapshot exists: ${snapshot.exists()} | Count: ${snapshot.childrenCount}")
             if (!snapshot.exists()) {
                 response = "No past orders."
             } else {
                 for (order in snapshot.children) {
-                    val pizza = order.child("pizza").getValue(String::class.java) ?: ""
+                    val name = order.child("name").getValue(String::class.java) ?: ""
                     val status = order.child("status").getValue(String::class.java) ?: ""
-                    response += "Order #${order.key}: $pizza ($status)\n"
+                    response += "Order #${order.key}: $name ($status)\n"
                 }
             }
             messages.add(ChatMessage(response, false))
             chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
+        }.addOnFailureListener { exception ->
+            if (!isAdded) return@addOnFailureListener
+            Log.e("Chatbot", "Error fetching order history: ${exception.message}", exception)
+            messages.add(ChatMessage("Error fetching order history: ${exception.message}", false))
+            chatAdapter.notifyItemInserted(messages.size - 1)
+            recyclerView.scrollToPosition(messages.size - 1)
         }
         return "Fetching order history..."
     }
