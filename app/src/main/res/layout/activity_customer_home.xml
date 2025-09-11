@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#FFFFFF"
     android:id="@+id/main">
 
@@ -35,6 +37,37 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
+            <!-- Cart Button with Badge -->
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="12dp">
+
+                <ImageButton
+                    android:id="@+id/cartButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_cart"
+                    android:background="@null"
+                    android:scaleType="centerInside"
+                    android:contentDescription="Cart Button" />
+
+                <!-- Badge (Item Count) -->
+                <TextView
+                    android:id="@+id/cartBadge"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/badge_background"
+                    android:text="0"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_margin="2dp"/>
+            </FrameLayout>
+
+            <!-- Profile Button -->
             <ImageButton
                 android:id="@+id/profileButton"
                 android:layout_width="40dp"
@@ -68,8 +101,8 @@
             android:layout_marginTop="8dp"
             android:paddingHorizontal="8dp">
 
-            <!-- Search Box -->
-            <EditText
+            <!-- Replace EditText with AutoCompleteTextView -->
+            <AutoCompleteTextView
                 android:id="@+id/searchBox"
                 android:layout_width="0dp"
                 android:layout_height="45dp"
@@ -79,7 +112,8 @@
                 android:background="@drawable/search_box_border"
                 android:textColor="#000000"
                 android:textSize="16sp"
-                android:inputType="text" />
+                android:inputType="text"
+                android:imeOptions="actionSearch"/>
 
             <!-- Search Button -->
             <ImageButton
@@ -132,5 +166,33 @@
             android:background="@null"
             android:contentDescription="Branch Page" />
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/mainContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Chat icon FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/chatFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="75dp"
+        android:layout_marginRight="10dp"
+        android:contentDescription="Open Chatbot"
+        android:src="@android:drawable/ic_dialog_email"
+        app:fabSize="normal" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/chatbotButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_chatbot3"
+        android:contentDescription="Chatbot"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@id/bottomAppBar"
+        android:layout_margin="16dp" />
 
 </RelativeLayout>
