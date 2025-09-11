@@ -1,0 +1,123 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@drawable/glass_bg">
+
+    <!-- Close button -->
+    <ImageButton
+        android:id="@+id/closeButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:background="@android:color/transparent"
+        android:src="@drawable/stripe_link_close"
+        app:tint="#000000"
+        android:contentDescription="Close"/>
+
+    <!-- Main container -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_centerInParent="true">
+
+        <TextView
+            android:id="@+id/popupMenuTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chicago Deep-Dish Pizza"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_gravity="center"/>
+
+        <ImageView
+            android:id="@+id/popupMenuImage"
+            android:layout_width="wrap_content"
+            android:layout_height="200dp"
+            android:adjustViewBounds="true"
+            android:maxWidth="300dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/sample_pizza"
+            android:layout_marginTop="12dp"/>
+
+        <TextView
+            android:id="@+id/popupMenuPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rs. 2500"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#444444"
+            android:layout_marginTop="10dp"/>
+
+        <TextView
+            android:id="@+id/popupMenuDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="300dp"
+            android:text="Chicago Deep-Dish Pizza – A “pizza pie” baked in a deep, oiled pan..."
+            android:textSize="14sp"
+            android:textColor="#000000"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Quantity selector -->
+        <LinearLayout
+            android:id="@+id/quantityLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="15dp">
+
+            <ImageButton
+                android:id="@+id/minusButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/button_gray_glass"
+                android:src="@drawable/ic_minus"
+                app:tint="#000000"/>
+
+            <TextView
+                android:id="@+id/quantityText"
+                android:layout_width="50dp"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="0"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:layout_marginHorizontal="8dp"/>
+
+            <ImageButton
+                android:id="@+id/plusButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/button_gray_glass"
+                android:src="@drawable/ic_plus"
+                app:tint="#000000"/>
+        </LinearLayout>
+
+        <!-- Add to Cart -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/addToCartButton"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:text="Add to Cart"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#000000"
+            android:gravity="center"
+            android:layout_marginTop="20dp"
+            app:cornerRadius="8dp"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            app:icon="@drawable/ic_add_to_cart4"
+            app:iconTint="#FFFFFF"
+            app:rippleColor="#88FFFFFF"/>
+    </LinearLayout>
+</RelativeLayout>

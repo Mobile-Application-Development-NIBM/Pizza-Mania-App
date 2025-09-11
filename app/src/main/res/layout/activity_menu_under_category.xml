@@ -8,6 +8,7 @@
     tools:context=".MenuUnderCategoryActivity"
     android:background="#FFFFFF">
 
+    <!-- Top bar with back button and search -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -22,6 +23,15 @@
             android:layout_marginTop="8dp"
             android:paddingHorizontal="8dp">
 
+            <!-- Back Button -->
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:src="@drawable/ic_back"
+                android:background="@null"
+                android:contentDescription="Back"
+                android:layout_marginEnd="8dp" />
 
             <!-- Search Box -->
             <EditText
@@ -44,13 +54,13 @@
                 android:src="@drawable/ic_search6"
                 android:background="@null"
                 android:contentDescription="Search Button"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginStart="8dp" />
         </LinearLayout>
     </LinearLayout>
 
+    <!-- RecyclerView for category menus -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/branchRecyclerView"
+        android:id="@+id/viewAllRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottomAppBar"
@@ -58,6 +68,7 @@
         android:padding="8dp"
         android:clipToPadding="false" />
 
+    <!-- Bottom App Bar -->
     <LinearLayout
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
@@ -85,4 +96,16 @@
             android:background="@null"
             android:contentDescription="Branch Page" />
     </LinearLayout>
+
+    <!-- Chatbot FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/chatbotButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_chatbot3"
+        android:contentDescription="Chatbot"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@id/bottomAppBar"
+        android:layout_margin="16dp"
+        app:backgroundTint="#95ac7c" />
 </RelativeLayout>

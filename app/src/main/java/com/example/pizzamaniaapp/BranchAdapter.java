@@ -1,85 +1,91 @@
-package com.example.pizzamaniaapp; // Package name where this class belongs
+package com.example.pizzamaniaapp; // Package name of this class
 
-import android.content.Context; // Provides access to app-specific resources and classes
-import android.view.LayoutInflater; // Used to inflate XML layout files into View objects
-import android.view.View; // Basic building block for UI components
-import android.view.ViewGroup; // Container that holds views inside RecyclerView
-import android.widget.TextView; // UI component for displaying text
+import android.content.Context; // Provides access to application resources
+import android.view.LayoutInflater; // Converts XML layouts into View objects
+import android.view.View; // Basic UI component
+import android.view.ViewGroup; // Parent container for Views
+import android.widget.TextView; // UI element for displaying text
 
-import androidx.annotation.NonNull; // Annotation to indicate parameter/return value should not be null
-import androidx.recyclerview.widget.LinearLayoutManager; // RecyclerView layout manager (linear orientation)
-import androidx.recyclerview.widget.RecyclerView; // Used for displaying scrollable lists of items
+import androidx.annotation.NonNull; // Annotation meaning "cannot be null"
+import androidx.recyclerview.widget.LinearLayoutManager; // LayoutManager for RecyclerView
+import androidx.recyclerview.widget.RecyclerView; // Scrollable list view
 
-import java.util.ArrayList; // List implementation that allows duplicates and preserves order
-import java.util.LinkedHashSet; // Set implementation that preserves insertion order (no duplicates)
-import java.util.List; // Interface for ordered collections
-import java.util.Set; // Interface for collections of unique elements
+import java.util.ArrayList; // Dynamic list implementation
+import java.util.LinkedHashSet; // Set that preserves insertion order
+import java.util.List; // Generic list interface
+import java.util.Map; // Key-Value mapping
+import java.util.Set; // Collection of unique elements
 
-
-// 🔹 Adapter to display branches and their menu items (grouped by branch)
+// 🔹 Adapter to display branches and their menu items
 public class BranchAdapter extends RecyclerView.Adapter<BranchAdapter.BranchViewHolder> {
 
-    private final Context context; // Activity context
-    private final List<AdminHomeActivity.MenuItem> menuList; // Full list of menu items
-    private final OnEditClickListener editListener; // Callback for edit button
-    private final List<String> uniqueBranches; // Unique list of branches (preserves order)
+    private final Context context; // Reference to Activity/Fragment context
+    private final List<AdminHomeActivity.MenuItem> menuList; // All menu items
+    private final OnEditClickListener editListener; // Callback for edit button clicks
+    private final List<String> uniqueBranchIDs; // Stores distinct branch IDs
+    private final Map<String, String> branchIdToName; // Maps ID → Name for branches
 
-    // 🔹 Interface for handling edit clicks
+    // 🔹 Listener interface for handling edit button clicks
     public interface OnEditClickListener {
-        void onEditClick(AdminHomeActivity.MenuItem item); // Triggered when edit is clicked
+        void onEditClick(AdminHomeActivity.MenuItem item); // Called when edit is tapped
     }
 
     // 🔹 Constructor
-    public BranchAdapter(Context context, List<AdminHomeActivity.MenuItem> menuList,
-                         OnEditClickListener editListener) {
-        this.context = context; // Assign context
-        this.menuList = menuList; // Assign menu list
-        this.editListener = editListener; // Assign edit listener
+    public BranchAdapter(Context context,
+                         List<AdminHomeActivity.MenuItem> menuList,
+                         OnEditClickListener editListener,
+                         Map<String, String> branchIdToName) {
+        this.context = context; // Save context
+        this.menuList = menuList; // Save menu list
+        this.editListener = editListener; // Save listener
+        this.branchIdToName = branchIdToName; // Save mapping
 
-        // Extract unique branches (preserves insertion order with LinkedHashSet)
-        Set<String> branchSet = new LinkedHashSet<>();
-        for (AdminHomeActivity.MenuItem item : menuList) { // Loop through all menu items
-            if (item.branches != null) { // If branches exist
-                branchSet.addAll(item.branches); // Add all branches of this item
+        // Extract unique branch IDs from all menu items
+        Set<String> branchSet = new LinkedHashSet<>(); // Maintains order + uniqueness
+        for (AdminHomeActivity.MenuItem item : menuList) { // Loop through menu items
+            if (item.branches != null) { // If menu has assigned branches
+                branchSet.addAll(item.branches); // Add branch IDs to the set
             }
         }
-        this.uniqueBranches = new ArrayList<>(branchSet); // Convert to list
+        this.uniqueBranchIDs = new ArrayList<>(branchSet); // Convert to list
     }
 
     @NonNull
     @Override
     public BranchViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate branch_item_layout for each branch row
+        // Inflate branch row layout from XML
         View view = LayoutInflater.from(context).inflate(R.layout.branch_item_layout, parent, false);
-        return new BranchViewHolder(view); // Return view holder
+        return new BranchViewHolder(view); // Wrap inside ViewHolder
     }
 
     @Override
     public void onBindViewHolder(@NonNull BranchViewHolder holder, int position) {
-        // Get branch name at this position
-        String branchName = uniqueBranches.get(position);
-        holder.branchName.setText(branchName); // Set branch name in TextView
+        // Get branch ID for current position
+        String branchID = uniqueBranchIDs.get(position);
 
-        // Filter menus belonging to this branch
+        // Convert ID → Name if available, else fallback to raw ID
+        String branchName = branchIdToName.getOrDefault(branchID, branchID);
+        holder.branchName.setText(branchName); // Show branch name on UI
+
+        // Filter menu items that belong to this branch
         List<AdminHomeActivity.MenuItem> filteredMenus = new ArrayList<>();
         for (AdminHomeActivity.MenuItem item : menuList) {
-            if (item.branches != null && item.branches.contains(branchName)) {
-                filteredMenus.add(item); // Add menu if it belongs to current branch
+            if (item.branches != null && item.branches.contains(branchID)) {
+                filteredMenus.add(item); // Add menu to this branch’s list
             }
         }
 
-        // Create MenuAdapter for horizontal list of menus
+        // Create MenuAdapter for horizontal scrolling list of menus
         MenuAdapter menuAdapter = new MenuAdapter(filteredMenus, item -> {
-            // Edit callback
-            if (editListener != null) editListener.onEditClick(item);
+            if (editListener != null) editListener.onEditClick(item); // Handle edit
         }, item -> {
-            // Delete callback: call AdminHomeActivity's showDeletePopup
+            // Handle delete → call AdminHomeActivity’s method
             if (context instanceof AdminHomeActivity) {
                 ((AdminHomeActivity) context).showDeletePopup(item, null);
             }
         });
 
-        // Set horizontal RecyclerView inside each branch row
+        // Set horizontal layout for menu list
         holder.menuRecyclerView.setLayoutManager(
                 new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
         holder.menuRecyclerView.setAdapter(menuAdapter); // Attach adapter
@@ -87,36 +93,36 @@ public class BranchAdapter extends RecyclerView.Adapter<BranchAdapter.BranchView
 
     @Override
     public int getItemCount() {
-        return uniqueBranches.size(); // Number of branches
+        return uniqueBranchIDs.size(); // Number of unique branches
     }
 
-    // 🔹 ViewHolder for each branch row
+    // 🔹 ViewHolder = wrapper around row views for branch
     static class BranchViewHolder extends RecyclerView.ViewHolder {
-        TextView branchName, viewAll; // Branch name (viewAll unused here)
-        RecyclerView menuRecyclerView; // RecyclerView for menu items
+        TextView branchName; // Displays branch name
+        RecyclerView menuRecyclerView; // Holds horizontal list of menus
 
         public BranchViewHolder(@NonNull View itemView) {
             super(itemView);
-            branchName = itemView.findViewById(R.id.categoryName); // Branch name TextView
-            menuRecyclerView = itemView.findViewById(R.id.menuRecyclerView); // RecyclerView inside branch
+            branchName = itemView.findViewById(R.id.categoryName); // Get TextView from XML
+            menuRecyclerView = itemView.findViewById(R.id.menuRecyclerView); // Get RecyclerView
         }
     }
 
-    // 🔹 Update adapter with new menu list
+    // 🔹 Refresh adapter with new menu list
     public void updateList(List<AdminHomeActivity.MenuItem> newList) {
-        this.menuList.clear(); // Clear old list
-        this.menuList.addAll(newList); // Add new list
+        this.menuList.clear(); // Remove old menus
+        this.menuList.addAll(newList); // Add updated list
 
-        // Rebuild unique branches
-        uniqueBranches.clear();
+        // Recalculate unique branch IDs from updated menu list
+        uniqueBranchIDs.clear();
         Set<String> branchSet = new LinkedHashSet<>();
         for (AdminHomeActivity.MenuItem item : menuList) {
             if (item.branches != null) {
-                branchSet.addAll(item.branches);
+                branchSet.addAll(item.branches); // Add branch IDs
             }
         }
-        uniqueBranches.addAll(branchSet);
+        uniqueBranchIDs.addAll(branchSet);
 
-        notifyDataSetChanged(); // Refresh UI
+        notifyDataSetChanged(); // Refresh RecyclerView
     }
 }

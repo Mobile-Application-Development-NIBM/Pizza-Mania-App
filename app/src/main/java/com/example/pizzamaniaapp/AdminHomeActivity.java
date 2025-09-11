@@ -249,10 +249,11 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
                 });
 
                 if (branchAdapter == null) { // If adapter not initialized yet
-                    branchAdapter = new BranchAdapter( // Create new adapter with menu list
-                            AdminHomeActivity.this, // Context
-                            new ArrayList<>(allMenuItems), // Copy of menu items
-                            item -> showMenuPopup(item, null) // Click listener → open popup to edit menu item
+                    branchAdapter = new BranchAdapter(
+                            AdminHomeActivity.this,
+                            new ArrayList<>(allMenuItems),
+                            item -> showMenuPopup(item, null),
+                            branchIdToName   // ✅ pass ID→Name map here
                     );
                     branchRecyclerView.setAdapter(branchAdapter); // Attach adapter to RecyclerView
                 } else {
@@ -269,26 +270,50 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
         });
     }
 
-    private void loadBranches() { // Method to load all branch names from Firebase
-        db.child("branches").addListenerForSingleValueEvent(new ValueEventListener() { // Attach one-time listener to "branches" node
+    private final List<String> allBranchNames = new ArrayList<>(); // Stores branch names for UI
+    private final List<String> allBranchIDs = new ArrayList<>();   // Stores branch IDs for saving
+    private final java.util.Map<String, String> branchIdToName = new java.util.HashMap<>(); // Map branchID → branchName
+    private final java.util.Map<String, String> branchNameToId = new java.util.HashMap<>(); // Map branchName → branchID
+
+    private void loadBranches() {
+        // 🔹 Query the "branches" node once from Firebase Realtime Database
+        db.child("branches").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) { // Called when data is successfully fetched
-                allBranches.clear(); // Clear the existing branch list before reloading
-                for (DataSnapshot snap : snapshot.getChildren()) { // Loop through all branch nodes
-                    String branchName = snap.child("name").getValue(String.class); // Get branch name from snapshot
-                    if (branchName != null) branchName = branchName.trim(); // Trim spaces if not null
-                    if (branchName != null && branchName.length() > 0 && !allBranches.contains(branchName)) {
-                        // ✅ Add branch if name is valid (not null/empty) and not already in the list
-                        allBranches.add(branchName); // Add branch to list
-                        Log.d(TAG, "Loaded branch: " + branchName); // Debug log for each branch loaded
+            public void onDataChange(DataSnapshot snapshot) {
+                // Clear old data before reloading
+                allBranchNames.clear();   // Holds branch names for dropdown
+                allBranchIDs.clear();     // Holds branch IDs for mapping
+                branchIdToName.clear();   // Map: ID → Name
+                branchNameToId.clear();   // Map: Name → ID
+
+                // Loop through all branches in the DB
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    // Read branchID as String (could crash if it was saved as Long earlier!)
+                    String branchID = snap.child("branchID").getValue(String.class);
+                    // Read branch name
+                    String branchName = snap.child("name").getValue(String.class);
+
+                    if (branchID != null && branchName != null) {
+                        branchID = branchID.trim();     // Clean spaces
+                        branchName = branchName.trim(); // Clean spaces
+
+                        // Store into lists and maps
+                        allBranchIDs.add(branchID);          // Add ID to list
+                        allBranchNames.add(branchName);      // Add name to list
+                        branchIdToName.put(branchID, branchName); // ID → Name
+                        branchNameToId.put(branchName, branchID); // Name → ID
+
+                        Log.d(TAG, "Loaded branch: " + branchID + " (" + branchName + ")");
                     }
                 }
-                Log.d(TAG, "✅ Total branches loaded: " + allBranches.size()); // Log total branch count
+                // Log summary count
+                Log.d(TAG, "✅ Total branches loaded: " + allBranchIDs.size());
             }
 
             @Override
-            public void onCancelled(DatabaseError error) { // Called if data fetch fails
-                showCustomToast("Failed to load branches: " + error.getMessage()); // Show error message to user
+            public void onCancelled(DatabaseError error) {
+                // Handle DB error
+                showCustomToast("Failed to load branches: " + error.getMessage());
             }
         });
     }
@@ -353,162 +378,186 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
         });
     }
 
-    private void showMenuPopup(MenuItem existingItem, String preloadedID) { // Method to show popup for adding/editing a menu item
-        View popupView = LayoutInflater.from(this).inflate(R.layout.popup_add_menu, null); // Inflate popup layout
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create(); // Create dialog with popup view
-        dialog.show(); // Show dialog
+    private void showMenuPopup(MenuItem existingItem, String preloadedID) {
+        // Inflate the popup layout for adding/editing menu items
+        View popupView = LayoutInflater.from(this).inflate(R.layout.popup_add_menu, null);
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create();
+        dialog.show();
 
-        Window window = dialog.getWindow(); // Get dialog window for customization
+        // Configure popup window size, background, and keyboard behavior
+        Window window = dialog.getWindow();
         if (window != null) {
-            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels * 0.9), // Set width = 90% of screen
-                    WindowManager.LayoutParams.WRAP_CONTENT); // Height = wrap content
-            window.setBackgroundDrawableResource(android.R.color.transparent); // Transparent background
-            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE); // Adjust UI when keyboard shows
+            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels * 0.9), // 90% of screen width
+                    WindowManager.LayoutParams.WRAP_CONTENT); // Height wraps content
+            window.setBackgroundDrawableResource(android.R.color.transparent); // Transparent corners
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE); // Resize when keyboard appears
         }
 
-        // 🔹 Initialize popup input fields
-        TextView title = popupView.findViewById(R.id.popupTitleMenu); // Popup title
-        EditText idInput = popupView.findViewById(R.id.menuIdInput); // Menu ID field
-        EditText nameInput = popupView.findViewById(R.id.menuNameInput); // Menu name field
-        EditText categoryInput = popupView.findViewById(R.id.menuCategoryInput); // Menu category field
-        EditText descInput = popupView.findViewById(R.id.menuDescriptionInput); // Menu description field
-        EditText priceInput = popupView.findViewById(R.id.menuPriceInput); // Menu price field
-        EditText imageInput = popupView.findViewById(R.id.menuImageInput); // Menu image URL field
-        AutoCompleteTextView branchesDropdown = popupView.findViewById(R.id.branchesDropdown); // Dropdown to select branches
-        ChipGroup selectedBranchesGroup = popupView.findViewById(R.id.selectedBranchesGroup); // Group to hold branch chips
-        Button saveBtn = popupView.findViewById(R.id.saveMenuBtn); // Save button
-        Button cancelBtn = popupView.findViewById(R.id.cancelMenuBtn); // Cancel button
+        // 🔹 UI elements inside popup
+        TextView title = popupView.findViewById(R.id.popupTitleMenu);         // Popup title
+        EditText idInput = popupView.findViewById(R.id.menuIdInput);          // Menu ID input
+        EditText nameInput = popupView.findViewById(R.id.menuNameInput);      // Menu name input
+        EditText categoryInput = popupView.findViewById(R.id.menuCategoryInput); // Menu category input
+        EditText descInput = popupView.findViewById(R.id.menuDescriptionInput);  // Menu description input
+        EditText priceInput = popupView.findViewById(R.id.menuPriceInput);    // Menu price input
+        EditText imageInput = popupView.findViewById(R.id.menuImageInput);    // Menu image URL input
+        AutoCompleteTextView branchesDropdown = popupView.findViewById(R.id.branchesDropdown); // Dropdown for selecting branch
+        ChipGroup selectedBranchesGroup = popupView.findViewById(R.id.selectedBranchesGroup); // Shows selected branches as chips
+        Button saveBtn = popupView.findViewById(R.id.saveMenuBtn);            // Save button
+        Button cancelBtn = popupView.findViewById(R.id.cancelMenuBtn);        // Cancel button
 
-        // 🔹 Setup branch dropdown
-        ArrayAdapter<String> adapter = new ArrayAdapter<>( // Adapter for branches dropdown
-                this, android.R.layout.simple_dropdown_item_1line, allBranches
+        // 🔹 Branch dropdown shows NAMES to the user, but internally we store IDs
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, allBranchNames // Provide all branch names
         );
-        branchesDropdown.setAdapter(adapter); // Attach adapter to dropdown
-        branchesDropdown.setThreshold(1); // Start suggesting after 1 character
+        branchesDropdown.setAdapter(adapter); // Attach adapter
+        branchesDropdown.setThreshold(1);     // Start suggesting after typing 1 character
 
-        List<String> selectedBranches = new ArrayList<>(); // List of selected branches
-        branchesDropdown.setOnItemClickListener((parent, view, position, id) -> { // Handle branch selection
-            String selected = adapter.getItem(position); // Get selected branch
-            if (selected != null && !selectedBranches.contains(selected)) { // If valid and not already added
-                selectedBranches.add(selected); // Add to selected list
-                Chip chip = new Chip(this); // Create chip for branch
-                chip.setText(selected); // Set chip text
-                chip.setCloseIconVisible(true); // Show close (X) icon
-                chip.setOnCloseIconClickListener(v -> { // Handle chip remove
-                    selectedBranches.remove(selected);
-                    selectedBranchesGroup.removeView(chip);
+        List<String> selectedBranchIDs = new ArrayList<>(); // Stores chosen branch IDs
+
+        // When a branch is selected from dropdown
+        branchesDropdown.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedName = adapter.getItem(position);   // Get selected branch name
+            String branchID = branchNameToId.get(selectedName); // Convert name → ID
+
+            if (branchID != null && !selectedBranchIDs.contains(branchID)) { // Avoid duplicates
+                selectedBranchIDs.add(branchID); // Add branch ID
+
+                Chip chip = new Chip(this);       // Create a chip for UI
+                chip.setText(selectedName);       // Show branch NAME on chip
+                chip.setCloseIconVisible(true);   // Add "X" to remove
+                chip.setOnCloseIconClickListener(v -> {
+                    selectedBranchIDs.remove(branchID);        // Remove ID from list
+                    selectedBranchesGroup.removeView(chip);    // Remove chip from group
                 });
                 selectedBranchesGroup.addView(chip); // Add chip to group
-                branchesDropdown.setText(""); // Clear dropdown text
+                branchesDropdown.setText("");       // Clear dropdown input after selection
             }
         });
 
-        boolean isEditing = existingItem != null; // Check if editing an existing item
-        if (isEditing) { // If editing existing menu item
-            title.setText("Editing Menu Item"); // Set popup title
-            idInput.setText(existingItem.menuID); // Show existing ID
-            idInput.setEnabled(false); // Disable editing ID
-            nameInput.setText(existingItem.name); // Load existing name
-            categoryInput.setText(existingItem.category); // Load existing category
-            descInput.setText(existingItem.description); // Load existing description
-            priceInput.setText(String.valueOf(existingItem.price)); // Load existing price
-            imageInput.setText(existingItem.imageURL); // Load existing image URL
+        boolean isEditing = existingItem != null; // Check if editing an existing menu
+        if (isEditing) {
+            title.setText("Editing Menu Item");    // Change popup title
+            idInput.setText(existingItem.menuID);  // Fill ID
+            idInput.setEnabled(false);             // ID cannot be changed
+            nameInput.setText(existingItem.name);  // Fill name
+            categoryInput.setText(existingItem.category); // Fill category
+            descInput.setText(existingItem.description);  // Fill description
+            priceInput.setText(String.valueOf(existingItem.price)); // Fill price
+            imageInput.setText(existingItem.imageURL);   // Fill image URL
 
-            if (existingItem.branches != null) { // If item has assigned branches
-                for (String b : existingItem.branches) { // Loop through branches
-                    if (b == null) continue;
-                    selectedBranches.add(b); // Add to selected list
-                    Chip chip = new Chip(this); // Create chip
-                    chip.setText(b); // Set branch name
-                    chip.setCloseIconVisible(true); // Show close icon
-                    chip.setOnCloseIconClickListener(v -> { // Handle remove
-                        selectedBranches.remove(b);
-                        selectedBranchesGroup.removeView(chip);
+            // 🔹 Restore branches
+            if (existingItem.branches != null) {
+                for (String branchID : existingItem.branches) {
+                    if (branchID == null) continue; // Skip nulls
+                    String branchName = branchIdToName.get(branchID); // Convert ID → name
+                    if (branchName == null) branchName = branchID; // Fallback if not found
+
+                    selectedBranchIDs.add(branchID); // Add to selected list
+
+                    Chip chip = new Chip(this);     // Create chip
+                    chip.setText(branchName);       // Show branch NAME
+                    chip.setCloseIconVisible(true); // Add close icon
+                    String finalBranchID = branchID;
+                    chip.setOnCloseIconClickListener(v -> {
+                        selectedBranchIDs.remove(finalBranchID);  // Remove branch from list
+                        selectedBranchesGroup.removeView(chip);   // Remove chip from UI
                     });
                     selectedBranchesGroup.addView(chip); // Add chip to group
                 }
             }
-        } else { // If adding a new menu item
-            title.setText("Add New Menu Item"); // Set popup title
-            idInput.setText(preloadedID); // Preload generated menu ID
-            idInput.setEnabled(false); // Disable editing ID
+        } else {
+            // Adding a new menu item
+            title.setText("Add New Menu Item");
+            idInput.setText(preloadedID);  // Auto-generated/preloaded ID
+            idInput.setEnabled(false);     // Cannot edit ID
         }
 
-        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // Close popup when cancel is clicked
-        saveBtn.setOnClickListener(v -> saveMenuItem( // Save menu item when save is clicked
+        // Cancel button → close popup
+        cancelBtn.setOnClickListener(v -> dialog.dismiss());
+
+        // Save button → call saveMenuItem()
+        saveBtn.setOnClickListener(v -> saveMenuItem(
                 existingItem, idInput, nameInput, categoryInput,
-                descInput, priceInput, imageInput, selectedBranches, dialog
+                descInput, priceInput, imageInput, selectedBranchIDs, dialog
         ));
     }
 
-    private void saveMenuItem(MenuItem existingItem, EditText idInput, EditText nameInput, EditText categoryInput,
-                              EditText descInput, EditText priceInput, EditText imageInput,
-                              List<String> selectedBranches, AlertDialog dialog) { // Method to save or update a menu item
+    private void saveMenuItem(MenuItem existingItem, EditText idInput, EditText nameInput,
+                              EditText categoryInput, EditText descInput, EditText priceInput,
+                              EditText imageInput, List<String> selectedBranchIDs, AlertDialog dialog) {
 
-        // 🔹 Read user input from fields
-        String id = idInput.getText().toString().trim(); // Menu ID
-        String name = nameInput.getText().toString().trim(); // Menu name
-        String category = categoryInput.getText().toString().trim(); // Category
-        String desc = descInput.getText().toString().trim(); // Description
-        String priceStr = priceInput.getText().toString().trim(); // Price string (needs parsing)
-        String imageUrl = imageInput.getText().toString().trim(); // Image URL
+        String id = idInput.getText().toString().trim();           // Get menu ID from input field (trim spaces)
+        String name = nameInput.getText().toString().trim();       // Get menu name
+        String category = categoryInput.getText().toString().trim(); // Get category
+        String desc = descInput.getText().toString().trim();       // Get description
+        String priceStr = priceInput.getText().toString().trim();  // Get price as string
+        String imageUrl = imageInput.getText().toString().trim();  // Get image URL
 
-        // 🔹 Validate required fields
         if (id.isEmpty() || name.isEmpty() || category.isEmpty() || priceStr.isEmpty()) {
-            showCustomToast("Please fill all required fields"); // Show error if required fields missing
-            return; // Stop execution
+            showCustomToast("Please fill all required fields");    // Show warning if any required field is empty
+            return;                                                // Stop saving
         }
 
-        // 🔹 Parse price
         double price;
         try {
-            price = Double.parseDouble(priceStr); // Convert string to double
-        } catch (NumberFormatException e) { // Handle invalid input
-            showCustomToast("Invalid price"); // Show error if not a valid number
-            return; // Stop execution
+            price = Double.parseDouble(priceStr);                  // Convert price string to double
+        } catch (NumberFormatException e) {
+            showCustomToast("Invalid price");                      // Show error if price is not a valid number
+            return;                                                // Stop saving
         }
 
-        // 🔹 If editing, check if there are changes
-        if (existingItem != null) {
-            boolean noChanges =
-                    existingItem.name.equals(name) &&
-                            existingItem.category.equals(category) &&
-                            ((existingItem.description == null && desc.isEmpty()) ||
-                                    (existingItem.description != null && existingItem.description.equals(desc))) &&
-                            existingItem.price == price &&
-                            ((existingItem.imageURL == null && imageUrl.isEmpty()) ||
-                                    (existingItem.imageURL != null && existingItem.imageURL.equals(imageUrl))) &&
-                            existingItem.branches != null &&
-                            existingItem.branches.size() == selectedBranches.size() &&
-                            existingItem.branches.containsAll(selectedBranches);
-
-            if (noChanges) {
-                showCustomToast("No changes detected"); // ✅ Custom message if no updates
-                return;
+        // 🔹 Normalize branch references → handle old menus stored with names instead of IDs
+        List<String> normalizedBranchIDs = new ArrayList<>();       // New list for cleaned branch IDs
+        for (String b : selectedBranchIDs) {                        // Loop through selected branches
+            if (branchIdToName.containsKey(b)) {                    // If already an ID (exists in ID→Name map)
+                normalizedBranchIDs.add(b);                         // Keep as ID
+            } else if (branchNameToId.containsKey(b)) {             // If it’s actually a branch NAME
+                normalizedBranchIDs.add(branchNameToId.get(b));     // Convert name → ID
+            } else {
+                normalizedBranchIDs.add(b);                         // Fallback: keep original value
             }
         }
 
-        // 🔹 Create new MenuItem object and set values
-        MenuItem menuItem = new MenuItem();
-        menuItem.menuID = id; // Set ID
-        menuItem.name = name; // Set name
-        menuItem.category = category; // Set category
-        menuItem.description = desc; // Set description
-        menuItem.price = price; // Set price
-        menuItem.imageURL = imageUrl; // Set image URL
-        menuItem.branches = new ArrayList<>(selectedBranches); // Save selected branches
+        if (existingItem != null) {                                 // If editing an existing menu
+            boolean noChanges =
+                    existingItem.name.equals(name) &&               // Check if name is unchanged
+                            existingItem.category.equals(category) && // Check if category is unchanged
+                            ((existingItem.description == null && desc.isEmpty()) || // Handle null description
+                                    (existingItem.description != null && existingItem.description.equals(desc))) &&
+                            existingItem.price == price &&          // Check if price unchanged
+                            ((existingItem.imageURL == null && imageUrl.isEmpty()) || // Handle null imageURL
+                                    (existingItem.imageURL != null && existingItem.imageURL.equals(imageUrl))) &&
+                            existingItem.branches != null &&        // Check branch list
+                            existingItem.branches.size() == normalizedBranchIDs.size() && // Same size
+                            existingItem.branches.containsAll(normalizedBranchIDs); // Same items
 
-        // 🔹 Save menu item in Firebase
-        db.child("menu").child(id).setValue(menuItem) // Save item under "menu/{id}"
-                .addOnSuccessListener(aVoid -> { // If save succeeds
-                    String msg = (existingItem != null) ? "Menu item updated" : "Menu item saved";
-                    showCustomToast(msg); // Notify user
-                    dialog.dismiss(); // Close popup
-                    loadMenuItems(); // Refresh menu list
+            if (noChanges) {                                        // If nothing changed
+                showCustomToast("No changes detected");             // Show toast
+                return;                                             // Stop saving
+            }
+        }
+
+        // ✅ Always save with branch IDs (cleaned version)
+        MenuItem menuItem = new MenuItem();                         // Create new MenuItem object
+        menuItem.menuID = id;                                       // Set ID
+        menuItem.name = name;                                       // Set name
+        menuItem.category = category;                               // Set category
+        menuItem.description = desc;                                // Set description
+        menuItem.price = price;                                     // Set price
+        menuItem.imageURL = imageUrl;                               // Set image URL
+        menuItem.branches = normalizedBranchIDs;                    // Save branch IDs only
+
+        db.child("menu").child(id).setValue(menuItem)               // Save to Firebase under "menu/{id}"
+                .addOnSuccessListener(aVoid -> {                    // On success
+                    String msg = (existingItem != null) ? "Menu item updated" : "Menu item saved"; // Message based on add/edit
+                    showCustomToast(msg);                           // Show success toast
+                    dialog.dismiss();                               // Close popup dialog
+                    loadMenuItems();                                // Refresh menu list
                 })
-                .addOnFailureListener(e -> { // If save fails
+                .addOnFailureListener(e -> {                        // On failure
                     Log.e(TAG, "Save failed: " + e.getMessage(), e); // Log error
-                    showCustomToast("Failed: " + e.getMessage()); // Notify user
+                    showCustomToast("Failed: " + e.getMessage());   // Show failure toast
                 });
     }
 
