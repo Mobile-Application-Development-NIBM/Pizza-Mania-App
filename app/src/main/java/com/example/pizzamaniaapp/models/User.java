@@ -18,12 +18,12 @@ public class User {
     }
 
     //Use when saving data
-    public User(String userID, String name, String email, String address, String phone, String role) {
+    public User(String userID, String name, String email, String phone, String address, String role) {
         this.userID = userID;
         this.name = name;
         this.email = email;
-        this.address = address;
         this.phone = phone;
+        this.address = address;
         this.role = role;
     }
 }

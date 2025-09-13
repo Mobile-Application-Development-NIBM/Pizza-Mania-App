@@ -1,5 +1,6 @@
 package com.example.pizzamaniaapp;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -9,7 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.EditText;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -53,8 +55,14 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
 
     private FusedLocationProviderClient fusedLocationClient;
 
-    private final String currentUserID = "u001"; // Replace with actual logged-in user
-    private String branchID = "initialBranch";   // Pass via intent if needed
+    private String currentUserID;
+    private String currentUserName;
+    private String branchID;
+
+    // ---------------- SEARCH VARIABLES ----------------
+    private List<String> searchSuggestions = new ArrayList<>();
+    private ArrayAdapter<String> suggestionsAdapter;
+    private List<MenuItem> allMenus = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,42 +71,47 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
 
         setupEdgeToEdge();
 
-        // 1️⃣ Initialize Firebase and location
+        // Initialize Firebase and location
         dbRef = FirebaseDatabase.getInstance().getReference();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         recyclerView = findViewById(R.id.viewAllRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Get category name TextView
         TextView categoryText = findViewById(R.id.categoryText);
 
-        // 2️⃣ Read branchID, category name, and menu list from intent
-        if (getIntent() != null) {
-            String intentBranchID = getIntent().getStringExtra("branchID");
-            if (intentBranchID != null) branchID = intentBranchID;
+        // ------------------- GET BRANCH ID -------------------
+        branchID = getIntent().getStringExtra("branchID");
+        if (branchID == null) branchID = "defaultBranch"; // fallback
 
-            String categoryName = getIntent().getStringExtra("category_name");
-            if (categoryName != null) categoryText.setText(categoryName);
+        String categoryName = getIntent().getStringExtra("category_name");
+        if (categoryName != null) categoryText.setText(categoryName);
 
-            // ✅ Use Parcelable instead of Serializable
-            List<CustomerHomeActivity.MenuItem> menuList =
-                    getIntent().getParcelableArrayListExtra("menu_list");
+        List<CustomerHomeActivity.MenuItem> menuList =
+                getIntent().getParcelableArrayListExtra("menu_list");
 
-            if (menuList != null) {
-                categoryMenus.clear();
-                categoryMenus.addAll(menuList);
-            } else {
-                loadMenusForBranch(branchID, categoryName);
-            }
+        if (menuList != null) {
+            categoryMenus.clear();
+            categoryMenus.addAll(menuList);
+            allMenus.clear();
+            allMenus.addAll(menuList);
+
+            // Setup search immediately
+            setupSearch();
+            updateSearchSuggestions();
         } else {
-            loadMenusForBranch(branchID, null);
+            loadMenusForBranch(branchID, categoryName);
         }
 
         adapter = new MenuUnderCategoryAdapter(categoryMenus, this::showMenuPopup);
         recyclerView.setAdapter(adapter);
 
-        // 3️⃣ Load cart after dbRef is ready
+        // ------------------- GET USER INFO -------------------
+        SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+        currentUserID = prefs.getString("userID", "u001"); // fallback
+        currentUserName = prefs.getString("name", "User"); // optional
+
+        // ------------------- LOAD CART -------------------
         loadCart(branchID, currentUserID);
 
         // Back button
@@ -141,8 +154,8 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
                 hideLoadingDialog();
 
-                // Setup search after menus are loaded
                 setupSearch();
+                updateSearchSuggestions();
             }
 
             @Override
@@ -229,13 +242,13 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
             if (currentCart.items == null) currentCart.items = new ArrayList<>();
 
             boolean found = false;
-            int initialQuantity = 0; // quantity already in cart before change
+            int initialQuantity = 0;
 
             for (CartItem ci : currentCart.items) {
                 if (ci.menuID.equals(item.menuID)) {
-                    initialQuantity = ci.quantity; // store the original quantity
+                    initialQuantity = ci.quantity;
                     if (ci.quantity != selectedQuantity) {
-                        ci.quantity = selectedQuantity; // update only if changed
+                        ci.quantity = selectedQuantity;
                     }
                     found = true;
                     break;
@@ -246,13 +259,11 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
                 currentCart.items.add(new CartItem(item.menuID, item.name, item.price, selectedQuantity, item.imageURL));
             }
 
-            // If nothing changed
             if (found && initialQuantity == selectedQuantity) {
                 showCustomToast("Quantity not changed");
                 return;
             }
 
-            // Update totals
             int totalItems = 0;
             double totalPrice = 0;
             for (CartItem ci : currentCart.items) {
@@ -262,18 +273,9 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
             currentCart.totalItems = totalItems;
             currentCart.totalPrice = totalPrice;
 
-            // Write to Firebase safely
             dbRef.child("carts").child(currentCart.cartID).setValue(currentCart)
-                    .addOnSuccessListener(aVoid -> {
-                        if (!isFinishing() && !isDestroyed()) {
-                            showCustomToast("Cart updated");
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        if (!isFinishing() && !isDestroyed()) {
-                            showCustomToast("Failed to update cart");
-                        }
-                    });
+                    .addOnSuccessListener(aVoid -> showCustomToast("Cart updated"))
+                    .addOnFailureListener(e -> showCustomToast("Failed to update cart"));
 
             popupDialog.dismiss();
         });
@@ -282,25 +284,38 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
         closeBtn.setOnClickListener(v -> popupDialog.dismiss());
     }
 
-    private List<MenuItem> allMenus = new ArrayList<>(); // keeps original list for search
+    // ---------------- UPDATE SEARCH SUGGESTIONS ----------------
+    private void updateSearchSuggestions() {
+        searchSuggestions.clear();
+        for (MenuItem menu : allMenus) {
+            if (!searchSuggestions.contains(menu.name)) {
+                searchSuggestions.add(menu.name);
+            }
+        }
+        if (suggestionsAdapter != null) {
+            suggestionsAdapter.notifyDataSetChanged();
+        }
+    }
 
+    // ---------------- SETUP SEARCH ----------------
     private void setupSearch() {
-        EditText searchBox = findViewById(R.id.searchBox);
+        AutoCompleteTextView searchBox = findViewById(R.id.searchBox);
         ImageButton searchButton = findViewById(R.id.searchButton);
 
-        // Perform search when search button clicked
-        searchButton.setOnClickListener(v -> performSearch(searchBox.getText().toString().trim()));
+        suggestionsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, searchSuggestions);
+        searchBox.setAdapter(suggestionsAdapter);
+        searchBox.setThreshold(1);
 
-        // Optional: perform search on keyboard enter
+        searchButton.setOnClickListener(v -> performSearch(searchBox.getText().toString().trim()));
         searchBox.setOnEditorActionListener((v, actionId, event) -> {
             performSearch(searchBox.getText().toString().trim());
             return true;
         });
     }
 
+    // ---------------- PERFORM SEARCH ----------------
     private void performSearch(String query) {
         if (query.isEmpty()) {
-            // Show full list if query is empty
             categoryMenus.clear();
             categoryMenus.addAll(allMenus);
             adapter.notifyDataSetChanged();
@@ -309,18 +324,16 @@ public class MenuUnderCategoryActivity extends AppCompatActivity {
 
         List<MenuItem> filtered = new ArrayList<>();
         for (MenuItem menu : allMenus) {
-            if (menu.name.toLowerCase().contains(query.toLowerCase()) ||
-                    (menu.category != null && menu.category.toLowerCase().contains(query.toLowerCase()))) {
+            if (menu.name.toLowerCase().contains(query.toLowerCase())) {
                 filtered.add(menu);
             }
         }
 
+        categoryMenus.clear();
         if (filtered.isEmpty()) {
             showCustomToast("No menus found");
-            categoryMenus.clear();
-            categoryMenus.addAll(allMenus);
+            categoryMenus.addAll(allMenus); // restore menus instead of blank page
         } else {
-            categoryMenus.clear();
             categoryMenus.addAll(filtered);
         }
 

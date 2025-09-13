@@ -211,7 +211,8 @@ public class CustomerHomeActivity extends AppCompatActivity {
                 }
                 hideLoadingDialog();
                 if (nearestBranchID != null) {
-                    currentBranchID = nearestBranchID; // store it
+                    currentBranchID = nearestBranchID;
+                    locationFetched = true; // ✅ mark location as fetched
                     loadCart(nearestBranchID, currentUserID);
                     loadMenusForBranch(nearestBranchID);
                 }
@@ -224,13 +225,23 @@ public class CustomerHomeActivity extends AppCompatActivity {
         });
     }
 
+    private boolean locationFetched = false;
+
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: re-checking permissions and GPS");
-        checkPermissionsAndLoad();
 
-        // ✅ Extra safety: close dialog if still open
+        if (!locationFetched) {
+            checkPermissionsAndLoad(); // only fetch location once
+        } else {
+            // ✅ Location already fetched, just reload cart & menu popup/badge
+            loadCart(currentBranchID, currentUserID); // refresh cart info
+            categoryAdapter.notifyDataSetChanged();   // refresh menu popup quantities & badge
+            updateCartBadge();                        // update badge in case cart changed
+        }
+
+        // Extra safety: close GPS dialog if still open
         if (gpsDialog != null && gpsDialog.isShowing()) {
             LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
             if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {

@@ -34,23 +34,25 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull CartViewHolder holder, int position) {
-        CustomerHomeActivity.CartItem item = cartItems.get(position);
+        CustomerHomeActivity.CartItem cartItem = cartItems.get(position); // renamed variable
 
-        holder.name.setText(item.name);
-        holder.price.setText("Rs. " + item.price + " x" + item.quantity);
+        holder.name.setText(cartItem.name);
+        holder.price.setText("Rs. " + cartItem.price + " x" + cartItem.quantity);
 
-        // Load image with placeholder
         Glide.with(activity)
-                .load(item.imageURL != null ? item.imageURL : R.drawable.sample_pizza)
+                .load(cartItem.imageURL != null ? cartItem.imageURL : R.drawable.sample_pizza)
                 .placeholder(R.drawable.sample_pizza)
                 .into(holder.image);
 
         holder.removeBtn.setOnClickListener(v -> {
-            // Remove item
-            cartItems.remove(position);
+            int pos = holder.getAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION || pos >= cartItems.size()) return;
+
+            CustomerHomeActivity.CartItem removedItem = cartItems.get(pos); // renamed variable
+            cartItems.remove(pos);
 
             // Update totals in activity
-            activity.updateCartAfterRemoval(item);
+            activity.updateCartAfterRemoval(removedItem);
 
             // Update cart popup UI
             if (activity.cartPopupTotalText != null) {
@@ -58,7 +60,6 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                         ? "Cart is empty"
                         : "Total: Rs. " + activity.currentCart.totalPrice);
 
-                // Toggle RecyclerView / empty image
                 View parentView = (View) activity.cartPopupTotalText.getParent();
                 RecyclerView recyclerView = parentView.findViewById(R.id.cartRecyclerView);
                 ImageView emptyImage = parentView.findViewById(R.id.emptyCartImage);
@@ -72,7 +73,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                 }
             }
 
-            notifyItemRemoved(position);
+            notifyItemRemoved(pos);
         });
     }
 

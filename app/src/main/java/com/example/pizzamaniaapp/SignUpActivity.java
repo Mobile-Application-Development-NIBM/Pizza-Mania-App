@@ -84,62 +84,58 @@ public class SignUpActivity extends AppCompatActivity {
                 TextUtils.isEmpty(phone) || TextUtils.isEmpty(address) || TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
-
         }
 
         // Step 1: Create user in Firebase Authentication
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
-                    if(task.isSuccessful()) {
+                    if (task.isSuccessful()) {
 
-
-                        // Step 2: Generate custom userID like u001
-                        counterRef.runTransaction(new Transaction.Handler() {
-                            @NonNull
-                            @Override
-                            public Transaction.Result doTransaction(@NonNull MutableData currentData) {
-                                Long currentValue = currentData.getValue(Long.class);
-                                if (currentValue == null) currentValue = 0L;
-                                currentData.setValue(currentValue + 1);
-                                return Transaction.success(currentData);
-                            }
-
-                            @Override
-                            public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot snapshot) {
-                                if (committed && snapshot != null) {
-                                    long newIdNumber = snapshot.getValue(Long.class);
-                                    String userID = String.format("u%03d", newIdNumber);
-
-                                    // Step 3: Create User object (role = Customer)
-                                    User user = new User(userID, name, email, phone, address, "Customer");
-
-                                    // Step 4: Save under users/{userID} (not UID!)
-                                    usersRef.child(userID).setValue(user)
-                                            .addOnCompleteListener(task1 -> {
-                                                if (task1.isSuccessful()) {
-                                                    Toast.makeText(SignUpActivity.this, "Sign-up successful!", Toast.LENGTH_SHORT).show();
-
-                                                    // Step 5: Go to LoginActivity
-                                                    startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
-                                                    finish();
-                                                } else {
-                                                    Toast.makeText(SignUpActivity.this, "Failed to save user info", Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
-                                } else {
-                                    Toast.makeText(SignUpActivity.this, "Failed to generate userID", Toast.LENGTH_SHORT).show();
+                        // Step 2: Find the highest userID in "users"
+                        usersRef.get().addOnCompleteListener(snapshotTask -> {
+                            if (snapshotTask.isSuccessful() && snapshotTask.getResult() != null) {
+                                long maxId = 0;
+                                for (DataSnapshot child : snapshotTask.getResult().getChildren()) {
+                                    String key = child.getKey(); // e.g., "u018"
+                                    if (key != null && key.startsWith("u")) {
+                                        try {
+                                            long num = Long.parseLong(key.substring(1));
+                                            if (num > maxId) {
+                                                maxId = num;
+                                            }
+                                        } catch (NumberFormatException ignored) {}
+                                    }
                                 }
 
+                                // Next available ID
+                                long newIdNumber = maxId + 1;
+                                String userID = String.format("u%03d", newIdNumber);
+
+                                // Step 3: Create User object (role = Customer)
+                                User user = new User(userID, name, email, phone, address, "Customer");
+
+                                // Step 4: Save under users/{userID}
+                                usersRef.child(userID).setValue(user)
+                                        .addOnCompleteListener(task1 -> {
+                                            if (task1.isSuccessful()) {
+                                                Toast.makeText(SignUpActivity.this, "Sign-up successful!", Toast.LENGTH_SHORT).show();
+
+                                                // Step 5: Go to LoginActivity
+                                                startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
+                                                finish();
+                                            } else {
+                                                Toast.makeText(SignUpActivity.this, "Failed to save user info", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                            } else {
+                                Toast.makeText(SignUpActivity.this, "Failed to fetch users", Toast.LENGTH_SHORT).show();
                             }
                         });
-                    }
-                    else {
+
+                    } else {
                         // Firebase Auth error
                         Toast.makeText(SignUpActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
-
-
-
 }

@@ -176,8 +176,8 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
         addButton = findViewById(R.id.addButton); // "Add menu item" button
 
         branchRecyclerView.setLayoutManager(new LinearLayoutManager(this)); // Set RecyclerView layout (vertical list)
-        loadMenuItems(); // Load all menu items from Firebase
-        loadBranches(); // Load branch list (for assigning menu items)
+
+        loadBranches(); // Load all menu items from Firebase
 
         addButton.setOnClickListener(v -> prepareNewMenuPopup()); // When add button is clicked, open popup for new menu
 
@@ -288,7 +288,7 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
 
                 // Loop through all branches in the DB
                 for (DataSnapshot snap : snapshot.getChildren()) {
-                    // Read branchID as String (could crash if it was saved as Long earlier!)
+                    // Read branchID as String
                     String branchID = snap.child("branchID").getValue(String.class);
                     // Read branch name
                     String branchName = snap.child("name").getValue(String.class);
@@ -308,6 +308,9 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
                 }
                 // Log summary count
                 Log.d(TAG, "✅ Total branches loaded: " + allBranchIDs.size());
+
+                // 🔹 Now that branches are loaded, fetch menu items
+                loadMenuItems();
             }
 
             @Override
