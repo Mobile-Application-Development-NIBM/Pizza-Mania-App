@@ -1,21 +1,62 @@
 package com.example.pizzamaniaapp;
 
 import android.os.Bundle;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EmployeeHomeActivity extends AppCompatActivity {
+
+    private RecyclerView recyclerOrders;
+    private List<Order> orderList;
+    private OrderAdapter adapter;
+    private DatabaseReference ordersRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_employee_home);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        setContentView(R.layout.activity_employee_home); // 👈 use the XML you shared
+
+        recyclerOrders = findViewById(R.id.recyclerOrders);
+        recyclerOrders.setLayoutManager(new LinearLayoutManager(this));
+
+        orderList = new ArrayList<>();
+        adapter = new OrderAdapter(this, orderList, "employee"); // pass employee role
+        recyclerOrders.setAdapter(adapter);
+
+        ordersRef = FirebaseDatabase.getInstance().getReference("order");
+
+        // Load orders from Firebase
+        ordersRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                orderList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Order order = dataSnapshot.getValue(Order.class);
+                    if (order != null) {
+                        order.setOrderId(dataSnapshot.getKey()); // save key for updates
+                        orderList.add(order);
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(EmployeeHomeActivity.this, "Failed to load orders", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }
