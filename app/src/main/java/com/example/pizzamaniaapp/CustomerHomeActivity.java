@@ -125,7 +125,7 @@ public class CustomerHomeActivity extends AppCompatActivity {
         });
     }
 
-    private void updateCartBadge() {
+    public void updateCartBadge() {
         if (currentCart != null && currentCart.totalItems > 0) {
             cartBadge.setText(String.valueOf(currentCart.totalItems));
             cartBadge.setVisibility(View.VISIBLE);

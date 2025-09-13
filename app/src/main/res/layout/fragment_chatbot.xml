@@ -7,17 +7,29 @@
     android:elevation="8dp"
     android:padding="8dp">
 
+    <!-- 🍕 Header with Pizza Emoji -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="PizzaBot Assistant"
+        android:text="🍕 PizzaBot Assistant 🍕"
         android:textSize="16sp"
         android:padding="8dp"
         android:gravity="center"
         android:textStyle="bold"
         android:fontFamily="monospace"
+        android:textColor="#D2691E"
+        android:background="#FFF8DC"
+        android:layout_marginBottom="4dp"
         />
 
+    <!-- Pizza slice decorative separator -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#FF6347"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Chat area with pizza-themed background hint -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecyclerView"
         android:layout_width="match_parent"
@@ -25,24 +37,54 @@
         android:layout_weight="1"
         android:padding="4dp"
         android:nestedScrollingEnabled="true"
-        android:scrollbars="vertical" />
+        android:scrollbars="vertical"
+        android:background="#FFFAF0" />
 
+    <!-- Another decorative separator -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#FFD700"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Input section with pizza-themed styling -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="#FFF8DC"
+        android:padding="4dp">
 
         <EditText
             android:id="@+id/userInput"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:hint="Type here (e.g., 'show menu')..." />
+            android:textColor="@color/black"
+            android:hint="🗨️ Type here (e.g., 'show menu')..."
+            android:textColorHint="#8B4513"
+            android:background="@android:color/white"
+            android:padding="8dp"
+            android:layout_marginEnd="4dp" />
 
         <Button
             android:id="@+id/sendButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send" />
+            android:text="🚀 Send"
+            android:backgroundTint="#8B0000"
+            android:textColor="@android:color/white"
+            android:typeface="serif"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.02" />
     </LinearLayout>
+
+    <!-- Bottom pizza crust decoration -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:background="#D2691E"
+        android:layout_marginTop="4dp" />
 </LinearLayout>
