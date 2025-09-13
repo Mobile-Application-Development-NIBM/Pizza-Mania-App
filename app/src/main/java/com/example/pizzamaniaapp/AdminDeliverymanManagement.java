@@ -195,111 +195,187 @@ public class AdminDeliverymanManagement extends AppCompatActivity { // Activity 
         });
     }
 
-    private void showAddDeliverymanPopup(String branchId) { // Show popup dialog for adding a new deliveryman
-        showLoadingDialog("Preparing new deliveryman..."); // Show loading dialog while preparing IDs
+    private void showAddDeliverymanPopup(String branchId) {
+        // Show a loading dialog while preparing the popup
+        showLoadingDialog("Preparing new deliveryman...");
 
-        // Step 1: Generate deliveryman ID
-        db.child("deliverymen").addListenerForSingleValueEvent(new ValueEventListener() { // Read current deliverymen count
-            @Override
-            public void onDataChange(DataSnapshot snapshot) { // Called when deliverymen data is fetched
-                int nextDelNum = (int) snapshot.getChildrenCount() + 1; // Next deliveryman number
-                String deliverymanID = "d" + String.format("%03d", nextDelNum); // Format ID like d001, d002
+        // Step 1: Load all existing deliverymen IDs from Firebase
+        db.child("deliverymen").get().addOnCompleteListener(delTask -> {
+            int nextDel = 1; // Default next available deliveryman number
 
-                // Step 2: Generate user ID
-                db.child("users").addListenerForSingleValueEvent(new ValueEventListener() { // Read current users count
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) { // Called when users data is fetched
-                        int nextUserNum = (int) snapshot.getChildrenCount() + 1; // Next user number
-                        String userID = "u" + String.format("%03d", nextUserNum); // Format ID like u001, u002
+            if (delTask.isSuccessful() && delTask.getResult() != null) {
+                DataSnapshot delSnapshot = delTask.getResult();
+                List<Integer> delNums = new ArrayList<>();
 
-                        hideLoadingDialog(); // Hide loading dialog before showing popup
+                // Loop through all deliverymen and extract numeric part of IDs
+                for (DataSnapshot s : delSnapshot.getChildren()) {
+                    String id = s.getKey(); // e.g., "d001"
+                    if (id != null && id.startsWith("d")) {
+                        try {
+                            delNums.add(Integer.parseInt(id.substring(1))); // Convert "001" -> 1
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
 
-                        // --- Inflate popup layout ---
-                        View popupView = getLayoutInflater().inflate(R.layout.add_deliveryman_popup, null); // Inflate custom popup
-                        AlertDialog dialog = new AlertDialog.Builder(AdminDeliverymanManagement.this) // Create dialog
-                                .setView(popupView) // Attach custom view
-                                .create();
-                        dialog.show(); // Show dialog
+                // Sort the list to find gaps in IDs
+                Collections.sort(delNums);
 
-                        Window window = dialog.getWindow(); // Get dialog window
-                        if (window != null) {
-                            window.setLayout((int)(getResources().getDisplayMetrics().widthPixels * 0.8), // Set width = 80% of screen
-                                    WindowManager.LayoutParams.WRAP_CONTENT); // Height wraps content
-                            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Transparent background
+                // Find the smallest available deliveryman ID
+                for (int num : delNums) {
+                    if (num == nextDel) nextDel++; // ID already used, move to next
+                    else if (num > nextDel) break; // Found a gap
+                }
+            } else {
+                // Failed to read deliverymen IDs
+                hideLoadingDialog();
+                showCustomToast("Failed to load deliveryman IDs: " +
+                        (delTask.getException() != null ? delTask.getException().getMessage() : "Unknown error"));
+                return;
+            }
+
+            // Format deliveryman ID as "dXXX"
+            String deliverymanID = "d" + String.format("%03d", nextDel);
+
+            // Step 2: Load all existing user IDs from Firebase
+            db.child("users").get().addOnCompleteListener(userTask -> {
+                int nextUser = 1; // Default next available user number
+
+                if (userTask.isSuccessful() && userTask.getResult() != null) {
+                    DataSnapshot userSnapshot = userTask.getResult();
+                    List<Integer> userNums = new ArrayList<>();
+
+                    // Loop through all users and extract numeric part of IDs
+                    for (DataSnapshot s : userSnapshot.getChildren()) {
+                        String id = s.getKey(); // e.g., "u001"
+                        if (id != null && id.startsWith("u")) {
+                            try {
+                                userNums.add(Integer.parseInt(id.substring(1))); // Convert "001" -> 1
+                            } catch (NumberFormatException ignored) {}
+                        }
+                    }
+
+                    // Sort the list to find gaps in user IDs
+                    Collections.sort(userNums);
+
+                    // Find the smallest available user ID
+                    for (int num : userNums) {
+                        if (num == nextUser) nextUser++; // ID already used
+                        else if (num > nextUser) break; // Found a gap
+                    }
+                } else {
+                    // Failed to read user IDs
+                    hideLoadingDialog();
+                    showCustomToast("Failed to load user IDs: " +
+                            (userTask.getException() != null ? userTask.getException().getMessage() : "Unknown error"));
+                    return;
+                }
+
+                // Format user ID as "uXXX"
+                String userID = "u" + String.format("%03d", nextUser);
+
+                // Hide loading dialog before showing popup
+                hideLoadingDialog();
+
+                try {
+                    // Inflate the add deliveryman popup layout
+                    View popupView = getLayoutInflater().inflate(R.layout.add_deliveryman_popup, null);
+                    AlertDialog dialog = new AlertDialog.Builder(AdminDeliverymanManagement.this)
+                            .setView(popupView)
+                            .create();
+                    dialog.show();
+
+                    // Set popup width and background
+                    Window window = dialog.getWindow();
+                    if (window != null) {
+                        window.setLayout((int)(getResources().getDisplayMetrics().widthPixels * 0.8),
+                                WindowManager.LayoutParams.WRAP_CONTENT);
+                        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+                    }
+
+                    // Bind input fields
+                    EditText delIdInput = popupView.findViewById(R.id.deliverymanIDInput);
+                    EditText userIdInput = popupView.findViewById(R.id.userIDInput);
+                    EditText nameInput = popupView.findViewById(R.id.deliverymanNameInput);
+                    EditText emailInput = popupView.findViewById(R.id.deliverymanEmailInput);
+                    EditText passwordInput = popupView.findViewById(R.id.deliverymanPasswordInput);
+                    EditText contactInput = popupView.findViewById(R.id.deliverymanContactInput);
+                    EditText addressInput = popupView.findViewById(R.id.deliverymanAddressInput);
+
+                    // Set auto-generated IDs and disable editing
+                    delIdInput.setText(deliverymanID); delIdInput.setEnabled(false);
+                    userIdInput.setText(userID); userIdInput.setEnabled(false);
+
+                    // Bind buttons
+                    Button cancelBtn = popupView.findViewById(R.id.cancelDeliverymanBtn);
+                    Button saveBtn = popupView.findViewById(R.id.saveDeliverymanBtn);
+                    cancelBtn.setOnClickListener(v -> dialog.dismiss());
+
+                    saveBtn.setOnClickListener(v -> {
+                        // Read input values
+                        String name = nameInput.getText().toString().trim();
+                        String email = emailInput.getText().toString().trim();
+                        String password = passwordInput.getText().toString().trim();
+                        String contactStr = contactInput.getText().toString().trim();
+                        String address = addressInput.getText().toString().trim();
+
+                        // Validate input
+                        if (name.isEmpty() || email.isEmpty() || password.isEmpty()
+                                || contactStr.isEmpty() || address.isEmpty()) {
+                            showCustomToast("Please fill all fields");
+                            return;
                         }
 
-                        // --- Input fields ---
-                        EditText deliverymanIdInput = popupView.findViewById(R.id.deliverymanIDInput); // Deliveryman ID field
-                        EditText userIdInput = popupView.findViewById(R.id.userIDInput); // User ID field
-                        EditText nameInput = popupView.findViewById(R.id.deliverymanNameInput); // Name input
-                        EditText emailInput = popupView.findViewById(R.id.deliverymanEmailInput); // Email input
-                        EditText passwordInput = popupView.findViewById(R.id.deliverymanPasswordInput); // Password input
-                        EditText contactInput = popupView.findViewById(R.id.deliverymanContactInput); // Contact input
-                        EditText addressInput = popupView.findViewById(R.id.deliverymanAddressInput); // Address input
+                        long contact;
+                        try {
+                            contact = Long.parseLong(contactStr); // Convert contact to number
+                        } catch (NumberFormatException e) {
+                            showCustomToast("Invalid contact number");
+                            return;
+                        }
 
-                        deliverymanIdInput.setText(deliverymanID); // Pre-fill deliveryman ID
-                        deliverymanIdInput.setEnabled(false); // Disable editing
-                        userIdInput.setText(userID); // Pre-fill user ID
-                        userIdInput.setEnabled(false); // Disable editing
+                        // Create Deliveryman and User objects
+                        Deliveryman deliveryman = new Deliveryman(
+                                deliverymanID, branchId, name, email, contact, address, userID, password);
+                        deliveryman.status = "Available"; // Default status
 
-                        // --- Buttons ---
-                        Button cancelBtn = popupView.findViewById(R.id.cancelDeliverymanBtn); // Cancel button
-                        Button saveBtn = popupView.findViewById(R.id.saveDeliverymanBtn); // Save button
-                        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // Dismiss popup when cancel is clicked
+                        User user = new User(userID, name, email, address, contact, "Deliveryman");
 
-                        saveBtn.setOnClickListener(v -> { // Handle save button click
-                            String name = nameInput.getText().toString().trim(); // Get name
-                            String email = emailInput.getText().toString().trim(); // Get email
-                            String password = passwordInput.getText().toString().trim(); // Get password
-                            String contactStr = contactInput.getText().toString().trim(); // Get contact as string
-                            String address = addressInput.getText().toString().trim(); // Get address
+                        // Save deliveryman to Firebase
+                        db.child("deliverymen").child(deliverymanID).setValue(deliveryman)
+                                .addOnSuccessListener(aVoid ->
+                                        // Save user to Firebase
+                                        db.child("users").child(userID).setValue(user)
+                                                .addOnSuccessListener(aVoid2 -> {
+                                                    showCustomToast("Deliveryman added!");
+                                                    loadBranches(); // Reload branches data
+                                                    dialog.dismiss(); // Close popup
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    // Handle user save errors
+                                                    if (e.getMessage() != null &&
+                                                            e.getMessage().contains("Permission denied")) {
+                                                        showCustomToast("Permission denied while saving user!");
+                                                    } else {
+                                                        showCustomToast("Failed to add user: " + e.getMessage());
+                                                    }
+                                                }))
+                                .addOnFailureListener(e -> {
+                                    // Handle deliveryman save errors
+                                    if (e.getMessage() != null &&
+                                            e.getMessage().contains("Permission denied")) {
+                                        showCustomToast("Permission denied while saving deliveryman!");
+                                    } else {
+                                        showCustomToast("Failed to add deliveryman: " + e.getMessage());
+                                    }
+                                });
+                    });
 
-                            if (name.isEmpty() || email.isEmpty() || password.isEmpty() // Check if any field is empty
-                                    || contactStr.isEmpty() || address.isEmpty()) {
-                                showCustomToast("Please fill all fields"); // Show warning toast
-                                return; // Stop saving
-                            }
-
-                            long contact;
-                            try {
-                                contact = Long.parseLong(contactStr); // Try parsing contact number
-                            } catch (NumberFormatException e) { // If invalid number
-                                showCustomToast("Invalid contact"); // Show error toast
-                                return;
-                            }
-
-                            // --- Create objects ---
-                            Deliveryman deliveryman = new Deliveryman( // Create new Deliveryman object
-                                    deliverymanID, branchId, name, email, contact, address, userID, password
-                            );
-                            deliveryman.status = "Available"; // 🔹 Always set default status
-
-                            User user = new User(userID, name, email, address, contact, "Deliveryman"); // Create linked User object
-
-                            // --- Save to Firebase ---
-                            db.child("deliverymen").child(deliverymanID).setValue(deliveryman) // Save deliveryman
-                                    .addOnSuccessListener(aVoid -> db.child("users").child(userID).setValue(user) // On success, save user
-                                            .addOnSuccessListener(aVoid2 -> { // Both saved successfully
-                                                showCustomToast("Deliveryman added!"); // Show success toast
-                                                loadBranches(); // Refresh deliveryman list
-                                                dialog.dismiss(); // Close dialog
-                                            })
-                                            .addOnFailureListener(e -> showCustomToast("Failed to add user: " + e.getMessage()))) // Error while saving user
-                                    .addOnFailureListener(e -> showCustomToast("Failed to add deliveryman: " + e.getMessage())); // Error while saving deliveryman
-                        });
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError error) { // Called if Firebase fails
-                        hideLoadingDialog(); // Hide loading dialog
-                    }
-                });
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) { // Called if Firebase fails
-                hideLoadingDialog(); // Hide loading dialog
-            }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    showCustomToast("Failed to open add deliveryman popup");
+                }
+            });
         });
     }
 
@@ -335,93 +411,110 @@ public class AdminDeliverymanManagement extends AppCompatActivity { // Activity 
                 });
     }
 
-    private void showEditDeliverymanPopup(Deliveryman del) { // Show popup dialog for editing an existing deliveryman
-        View popupView = getLayoutInflater().inflate(R.layout.add_deliveryman_popup, null); // Inflate the same popup layout
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create(); // Create dialog with custom view
-        dialog.show(); // Show dialog
+    private void showEditDeliverymanPopup(Deliveryman del) {
+        // Inflate the popup layout for editing deliveryman
+        View popupView = getLayoutInflater().inflate(R.layout.add_deliveryman_popup, null);
 
-        Window window = dialog.getWindow(); // Get dialog window
+        // Create an AlertDialog with the inflated layout
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(popupView).create();
+        dialog.show(); // Show the popup
+
+        // Configure the popup window size and background
+        Window window = dialog.getWindow();
         if (window != null) {
-            window.setLayout((int) (getResources().getDisplayMetrics().widthPixels * 0.8), // Width = 80% of screen
-                    WindowManager.LayoutParams.WRAP_CONTENT); // Height wraps content
+            window.setLayout((int) (getResources().getDisplayMetrics().widthPixels * 0.8),
+                    WindowManager.LayoutParams.WRAP_CONTENT); // Set width to 80% of screen
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Transparent background
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 
-        TextView popupTitle = popupView.findViewById(R.id.popupTitleDeliveryman); // Find popup title
-        popupTitle.setText("Edit Deliveryman"); // Set title to "Edit Deliveryman"
+        // Set the title of the popup
+        TextView popupTitle = popupView.findViewById(R.id.popupTitleDeliveryman);
+        popupTitle.setText("Edit Deliveryman"); // Change title to indicate edit mode
 
-        // --- Input fields ---
+        // --- Bind input fields ---
         EditText delIdInput = popupView.findViewById(R.id.deliverymanIDInput); // Deliveryman ID field
-        EditText userIdInput = popupView.findViewById(R.id.userIDInput); // User ID field
+        EditText userIdInput = popupView.findViewById(R.id.userIDInput); // Linked user ID field
         EditText nameInput = popupView.findViewById(R.id.deliverymanNameInput); // Name input
         EditText emailInput = popupView.findViewById(R.id.deliverymanEmailInput); // Email input
         EditText passwordInput = popupView.findViewById(R.id.deliverymanPasswordInput); // Password input
         EditText contactInput = popupView.findViewById(R.id.deliverymanContactInput); // Contact input
         EditText addressInput = popupView.findViewById(R.id.deliverymanAddressInput); // Address input
 
+        // Bind buttons
         Button cancelBtn = popupView.findViewById(R.id.cancelDeliverymanBtn); // Cancel button
-        Button updateBtn = popupView.findViewById(R.id.saveDeliverymanBtn); // Save button (renamed to Update here)
-        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // Dismiss dialog when cancel is clicked
+        Button updateBtn = popupView.findViewById(R.id.saveDeliverymanBtn); // Save/Update button
+        cancelBtn.setOnClickListener(v -> dialog.dismiss()); // Close popup on cancel
 
-        // --- Pre-fill values from existing deliveryman ---
+        // --- Pre-fill input fields with existing deliveryman data ---
         delIdInput.setText(del.delID); // Set deliveryman ID
-        delIdInput.setEnabled(false); // Disable editing
-        userIdInput.setText(del.userID); // Set user ID
-        userIdInput.setEnabled(false); // Disable editing
-        nameInput.setText(del.name); // Set name
-        emailInput.setText(del.email); // Set email
-        passwordInput.setText(del.password); // Set password
-        contactInput.setText(String.valueOf(del.contact)); // Set contact number
-        addressInput.setText(del.address); // Set address
+        delIdInput.setEnabled(false); // Disable editing ID
+        userIdInput.setText(del.userID); // Set linked user ID
+        userIdInput.setEnabled(false); // Disable editing user ID
+        nameInput.setText(del.name); // Set current name
+        emailInput.setText(del.email); // Set current email
+        passwordInput.setText(del.password); // Set current password
+        contactInput.setText(String.valueOf(del.contact)); // Set current contact
+        addressInput.setText(del.address); // Set current address
         updateBtn.setText("Update"); // Change button text to "Update"
 
-        updateBtn.setOnClickListener(v -> { // Handle update button click
-            String name = nameInput.getText().toString().trim(); // Get updated name
-            String email = emailInput.getText().toString().trim(); // Get updated email
-            String password = passwordInput.getText().toString().trim(); // Get updated password
-            String contactStr = contactInput.getText().toString().trim(); // Get updated contact
-            String address = addressInput.getText().toString().trim(); // Get updated address
+        // --- Handle update button click ---
+        updateBtn.setOnClickListener(v -> {
+            // Read values from input fields
+            String name = nameInput.getText().toString().trim();
+            String email = emailInput.getText().toString().trim();
+            String password = passwordInput.getText().toString().trim();
+            String contactStr = contactInput.getText().toString().trim();
+            String address = addressInput.getText().toString().trim();
 
-            if (name.isEmpty() || email.isEmpty() || password.isEmpty() // Validate empty fields
+            // Validate that no field is empty
+            if (name.isEmpty() || email.isEmpty() || password.isEmpty()
                     || contactStr.isEmpty() || address.isEmpty()) {
-                showCustomToast("Please fill all fields"); // Show error toast
-                return; // Stop update
-            }
-
-            long contact;
-            try {
-                contact = Long.parseLong(contactStr); // Try parsing contact number
-            } catch (Exception e) { // If parsing fails
-                showCustomToast("Invalid contact"); // Show error toast
+                showCustomToast("Please fill all fields");
                 return;
             }
 
-            // If no changes detected in any field
+            // Convert contact string to long
+            long contact;
+            try {
+                contact = Long.parseLong(contactStr);
+            } catch (Exception e) {
+                showCustomToast("Invalid contact");
+                return;
+            }
+
+            // Check if any data has changed, if not, show message
             if (del.name.equals(name) && del.email.equals(email) &&
                     del.password.equals(password) && del.contact == contact &&
                     del.address.equals(address)) {
-                showCustomToast("No changes detected!"); // Show message
-                return; // Stop update
+                showCustomToast("No changes detected!");
+                return;
             }
 
-            // --- Update deliveryman object ---
-            del.name = name; // Update name
-            del.email = email; // Update email
-            del.password = password; // Update password
-            del.contact = contact; // Update contact
-            del.address = address; // Update address
-            if (del.status == null || del.status.isEmpty()) { // If status missing
-                del.status = "Available"; // ✅ Ensure status column always exists
+            // --- Update deliveryman object with new values ---
+            del.name = name;
+            del.email = email;
+            del.password = password;
+            del.contact = contact;
+            del.address = address;
+            if (del.status == null || del.status.isEmpty()) {
+                del.status = "Available"; // Ensure status is set
             }
 
-            // --- Save updated deliveryman to Firebase ---
-            db.child("deliverymen").child(del.delID).setValue(del) // Overwrite deliveryman record
-                    .addOnSuccessListener(aVoid -> { // If successful
-                        showCustomToast("Deliveryman updated!"); // Show success toast
-                        loadBranches(); // Refresh branch list
-                        dialog.dismiss(); // Close dialog
+            // --- Update deliveryman in Firebase ---
+            db.child("deliverymen").child(del.delID).setValue(del)
+                    .addOnSuccessListener(aVoid -> {
+                        // --- Update linked user in Firebase ---
+                        User updatedUser = new User(del.userID, name, email, address, contact, "Deliveryman");
+                        db.child("users").child(del.userID).setValue(updatedUser)
+                                .addOnSuccessListener(aVoid2 -> {
+                                    showCustomToast("Deliveryman updated!"); // Notify success
+                                    loadBranches(); // Refresh branch/employee list
+                                    dialog.dismiss(); // Close popup
+                                })
+                                .addOnFailureListener(e -> showCustomToast("User update failed: " + e.getMessage())); // Handle user update error
                     })
-                    .addOnFailureListener(e -> showCustomToast("Update failed: " + e.getMessage())); // Show error if failed
+                    .addOnFailureListener(e -> showCustomToast("Update failed: " + e.getMessage())); // Handle deliveryman update error
         });
     }
 

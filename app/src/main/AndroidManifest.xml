@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:enableOnBackInvokedCallback="true">
+
+    <!-- Location Permissions -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Internet Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -13,11 +22,7 @@
         android:theme="@style/Theme.PizzaManiaApp"
         tools:targetApi="31">
 
-        <activity
-            android:name=".AdminDeliverymanManagement"
-            android:exported="false">
-        </activity>
-
+        <!-- Activities -->
         <activity
             android:name=".DeliverymanDeliveryHistoryActivity"
             android:exported="false">
@@ -26,7 +31,6 @@
         <activity
             android:name=".DeliverymanHomeActivity"
             android:exported="false">
-
         </activity>
 
         <activity
@@ -36,11 +40,20 @@
 
         <activity
             android:name=".LoginActivity"
-            android:exported="false">
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity
             android:name=".AdminBranchEmployeeManagementActivity"
+            android:exported="false">
+        </activity>
+
+        <activity
+            android:name=".AdminDeliverymanManagement"
             android:exported="false">
         </activity>
 
@@ -61,12 +74,7 @@
 
         <activity
             android:name=".EmployeeOrderActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:exported="false">
         </activity>
 
         <activity
@@ -75,8 +83,14 @@
         </activity>
 
         <activity
-            android:name=".CustomerHomeActivity"
+            android:name=".MenuUnderCategoryActivity"
             android:exported="false">
+        </activity>
+
+        <!-- Customer Home is launcher -->
+        <activity
+            android:name=".CustomerHomeActivity"
+            android:exported="true">
         </activity>
 
         <activity
@@ -86,6 +100,11 @@
             android:theme="@style/Theme.PizzaManiaApp">
         </activity>
 
+        <!-- (Optional) Maps API Key if needed -->
+        <!--
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+        -->
     </application>
-
 </manifest>
