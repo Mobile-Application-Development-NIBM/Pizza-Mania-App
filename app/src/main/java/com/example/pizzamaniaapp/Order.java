@@ -10,6 +10,7 @@ public class Order {
     private String customerName;
     private long deliveredTimestamp;
     private double totalPrice;
+    private String status;          // ✅ order-level status
     private List<Item> items;
 
     // Firebase key (not stored in DB)
@@ -37,6 +38,9 @@ public class Order {
 
     public double getTotalPrice() { return totalPrice; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
     public List<Item> getItems() { return items; }
     public void setItems(List<Item> items) { this.items = items; }

@@ -1,6 +1,7 @@
 package com.example.pizzamaniaapp;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -35,7 +36,6 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
         pendingOrders = new ArrayList<>();
         ordersRef = FirebaseDatabase.getInstance().getReference("orders");
 
-        // Adapter (UI-only) with callback for status updates
         adapter = new OrderAdapter(this, pendingOrders, (order, newStatus) -> {
             updateOrderStatus(order, newStatus);
         });
@@ -54,10 +54,7 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
                     if (order != null) {
                         order.setOrderId(dataSnapshot.getKey());
 
-                        // ✅ Only show orders if the first item is "Delivery Pending"
-                        if (order.getItems() != null &&
-                                !order.getItems().isEmpty() &&
-                                "Delivery Pending".equals(order.getItems().get(0).getStatus())) {
+                        if ("Delivery Pending".equals(order.getStatus())) {
                             pendingOrders.add(order);
                         }
                     }
@@ -72,21 +69,29 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
         });
     }
 
-    // Update order status in Firebase
+    // ✅ Update all items + order-level status
     private void updateOrderStatus(Order order, String newStatus) {
-        if (order.getItems() != null && !order.getItems().isEmpty()) {
-            // Update the status of the first item for now
+        if (order.getItems() == null) return;
+
+        for (int i = 0; i < order.getItems().size(); i++) {
+            int finalI = i;
             ordersRef.child(order.getOrderId())
                     .child("items")
-                    .child("0") // first item index
+                    .child(String.valueOf(i))
                     .child("status")
                     .setValue(newStatus)
-                    .addOnSuccessListener(aVoid ->
-                            Toast.makeText(this, "Status Updated", Toast.LENGTH_SHORT).show()
-                    )
-                    .addOnFailureListener(e ->
-                            Toast.makeText(this, "Update Failed", Toast.LENGTH_SHORT).show()
-                    );
+                    .addOnSuccessListener(aVoid -> Log.d("DeliveryHome", "Item " + finalI + " updated"))
+                    .addOnFailureListener(e -> Log.e("DeliveryHome", "Update failed: " + e.getMessage()));
         }
+
+        ordersRef.child(order.getOrderId())
+                .child("status")
+                .setValue(newStatus)
+                .addOnSuccessListener(aVoid ->
+                        Toast.makeText(this, "Status Updated Successfully", Toast.LENGTH_SHORT).show()
+                )
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Update Failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
     }
 }

@@ -1,6 +1,8 @@
 package com.example.pizzamaniaapp;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,6 +25,7 @@ public class EmployeeHomeActivity extends AppCompatActivity {
     private List<Order> orderList;
     private OrderAdapter adapter;
     private DatabaseReference ordersRef;
+    private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +55,18 @@ public class EmployeeHomeActivity extends AppCompatActivity {
                     Order order = dataSnapshot.getValue(Order.class);
                     if (order != null) {
                         order.setOrderId(dataSnapshot.getKey());
-                        orderList.add(order);
+
+                        // 🔹 Use order-level status, fallback to first item's status
+                        String status = order.getStatus();
+                        if (status == null && order.getItems() != null && !order.getItems().isEmpty()) {
+                            status = order.getItems().get(0).getStatus();
+                        }
+
+                        // ✅ Filter: only show Confirm Order & Preparing
+                        if ("confirm order".equalsIgnoreCase(status) ||
+                                "Preparing".equalsIgnoreCase(status)) {
+                            orderList.add(order);
+                        }
                     }
                 }
                 adapter.notifyDataSetChanged();
@@ -65,18 +79,50 @@ public class EmployeeHomeActivity extends AppCompatActivity {
         });
     }
 
-    // ✅ Update all items' status inside an order
+    // ✅ Update all items + order-level status
     private void updateOrderStatus(Order order, String newStatus) {
         if (order.getItems() == null) return;
 
+        // update every item in Firebase
         for (int i = 0; i < order.getItems().size(); i++) {
+            int finalI = i;
             ordersRef.child(order.getOrderId())
                     .child("items")
                     .child(String.valueOf(i))
                     .child("status")
-                    .setValue(newStatus);
+                    .setValue(newStatus)
+                    .addOnSuccessListener(aVoid -> Log.d("EmployeeHome", "Item " + finalI + " updated"))
+                    .addOnFailureListener(e -> Log.e("EmployeeHome", "Update failed: " + e.getMessage()));
         }
 
-        Toast.makeText(this, "Status Updated", Toast.LENGTH_SHORT).show();
+        // update order-level status in Firebase
+        ordersRef.child(order.getOrderId())
+                .child("status")
+                .setValue(newStatus)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Status Updated Successfully", Toast.LENGTH_SHORT).show();
+
+                    // ✅ If changed to Delivery Pending → wait 5 sec before removing locally
+                    if ("Delivery Pending".equalsIgnoreCase(newStatus)) {
+                        Toast.makeText(this, "Order will disappear in 5 seconds", Toast.LENGTH_LONG).show();
+
+                        handler.postDelayed(() -> {
+                            int indexToRemove = -1;
+                            for (int i = 0; i < orderList.size(); i++) {
+                                if (orderList.get(i).getOrderId().equals(order.getOrderId())) {
+                                    indexToRemove = i;
+                                    break;
+                                }
+                            }
+                            if (indexToRemove != -1) {
+                                orderList.remove(indexToRemove);
+                                adapter.notifyItemRemoved(indexToRemove);
+                            }
+                        }, 5000);
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Update Failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
     }
 }

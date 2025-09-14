@@ -44,7 +44,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         holder.tvCustomerName.setText(order.getCustomerName());
 
         if (order.getItems() != null && !order.getItems().isEmpty()) {
-            // Build details string
             StringBuilder itemsDetails = new StringBuilder();
             itemsDetails.append("Items: ").append(order.getItems().size()).append("\n");
 
@@ -56,11 +55,10 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                         .append("\n");
             }
 
-            // Take status from first item
-            String status = order.getItems().get(0).getStatus();
+            // ✅ Use order-level status
+            String status = order.getStatus();
             itemsDetails.append("Status: ").append(status != null ? status : "N/A").append("\n");
 
-            // Use order-level total price
             itemsDetails.append("Total: Rs. ").append(order.getTotalPrice());
 
             holder.tvItems.setText(itemsDetails.toString());
