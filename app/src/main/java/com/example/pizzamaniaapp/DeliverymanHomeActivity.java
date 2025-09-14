@@ -29,18 +29,22 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_deliveryman_home);
 
-        // 🔹 Link RecyclerView from XML
         deliveryRecyclerView = findViewById(R.id.deliveryRecyclerView);
         deliveryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         pendingOrders = new ArrayList<>();
-        // 🔹 Delivery role: can update to "Completed"
-        adapter = new OrderAdapter(this, pendingOrders, "delivery");
+        ordersRef = FirebaseDatabase.getInstance().getReference("orders");
+
+        // Adapter (UI-only) with callback for status updates
+        adapter = new OrderAdapter(this, pendingOrders, (order, newStatus) -> {
+            updateOrderStatus(order, newStatus);
+        });
         deliveryRecyclerView.setAdapter(adapter);
 
-        ordersRef = FirebaseDatabase.getInstance().getReference("order");
+        loadPendingOrders();
+    }
 
-        // 🔹 Load only Delivery Pending orders
+    private void loadPendingOrders() {
         ordersRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -50,8 +54,10 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
                     if (order != null) {
                         order.setOrderId(dataSnapshot.getKey());
 
-                        // ✅ Show only Delivery Pending orders
-                        if ("Delivery Pending".equals(order.getStatus())) {
+                        // ✅ Only show orders if the first item is "Delivery Pending"
+                        if (order.getItems() != null &&
+                                !order.getItems().isEmpty() &&
+                                "Delivery Pending".equals(order.getItems().get(0).getStatus())) {
                             pendingOrders.add(order);
                         }
                     }
@@ -64,5 +70,23 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
                 Toast.makeText(DeliverymanHomeActivity.this, "Failed to load orders", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // Update order status in Firebase
+    private void updateOrderStatus(Order order, String newStatus) {
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            // Update the status of the first item for now
+            ordersRef.child(order.getOrderId())
+                    .child("items")
+                    .child("0") // first item index
+                    .child("status")
+                    .setValue(newStatus)
+                    .addOnSuccessListener(aVoid ->
+                            Toast.makeText(this, "Status Updated", Toast.LENGTH_SHORT).show()
+                    )
+                    .addOnFailureListener(e ->
+                            Toast.makeText(this, "Update Failed", Toast.LENGTH_SHORT).show()
+                    );
+        }
     }
 }

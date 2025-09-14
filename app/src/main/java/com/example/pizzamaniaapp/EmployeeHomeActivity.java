@@ -27,18 +27,23 @@ public class EmployeeHomeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_employee_home); // 👈 use the XML you shared
+        setContentView(R.layout.activity_employee_home);
 
         recyclerOrders = findViewById(R.id.recyclerOrders);
         recyclerOrders.setLayoutManager(new LinearLayoutManager(this));
 
         orderList = new ArrayList<>();
-        adapter = new OrderAdapter(this, orderList, "employee"); // pass employee role
+        ordersRef = FirebaseDatabase.getInstance().getReference("orders");
+
+        adapter = new OrderAdapter(this, orderList, (order, newStatus) -> {
+            updateOrderStatus(order, newStatus);
+        });
         recyclerOrders.setAdapter(adapter);
 
-        ordersRef = FirebaseDatabase.getInstance().getReference("order");
+        loadOrders();
+    }
 
-        // Load orders from Firebase
+    private void loadOrders() {
         ordersRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -46,7 +51,7 @@ public class EmployeeHomeActivity extends AppCompatActivity {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Order order = dataSnapshot.getValue(Order.class);
                     if (order != null) {
-                        order.setOrderId(dataSnapshot.getKey()); // save key for updates
+                        order.setOrderId(dataSnapshot.getKey());
                         orderList.add(order);
                     }
                 }
@@ -58,5 +63,20 @@ public class EmployeeHomeActivity extends AppCompatActivity {
                 Toast.makeText(EmployeeHomeActivity.this, "Failed to load orders", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // ✅ Update all items' status inside an order
+    private void updateOrderStatus(Order order, String newStatus) {
+        if (order.getItems() == null) return;
+
+        for (int i = 0; i < order.getItems().size(); i++) {
+            ordersRef.child(order.getOrderId())
+                    .child("items")
+                    .child(String.valueOf(i))
+                    .child("status")
+                    .setValue(newStatus);
+        }
+
+        Toast.makeText(this, "Status Updated", Toast.LENGTH_SHORT).show();
     }
 }

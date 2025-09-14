@@ -14,11 +14,7 @@
         android:scaleType="centerCrop"
         android:src="@drawable/pizzabanner3" />
 
-
-
     <!-- Title -->
-
-    <!-- RecyclerView for dynamic orders -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -27,12 +23,16 @@
         android:text="Current Orders"
         android:textColor="#000000"
         android:textSize="22sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_gravity="center"/>
 
+
+    <!-- RecyclerView (fills remaining space) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerOrders"
         android:layout_width="match_parent"
-        android:layout_height="495dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <!-- Bottom AppBar -->
     <LinearLayout
@@ -41,8 +41,7 @@
         android:layout_height="60dp"
         android:orientation="horizontal"
         android:gravity="center"
-        android:background="#333333"
-        android:layout_alignParentBottom="true">
+        android:background="#333333">
 
         <ImageButton
             android:id="@+id/homeButton"
@@ -62,5 +61,4 @@
             android:background="@null"
             android:contentDescription="Branch Page" />
     </LinearLayout>
-
 </LinearLayout>

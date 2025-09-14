@@ -1,6 +1,7 @@
 package com.example.pizzamaniaapp;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,30 +9,26 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
 import java.util.List;
 
-//connects the Order data with the employee_order_item.xml UI----------------------------------------
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
 
     private Context context;
     private List<Order> orderList;
-    private DatabaseReference ordersRef;
-    private String userRole; // "employee" or "delivery"
+    private OnStatusUpdateListener listener;
 
-    // ✅ Fixed constructor: now requires userRole
-    public OrderAdapter(Context context, List<Order> orderList, String userRole) {
+    public interface OnStatusUpdateListener {
+        void onStatusUpdate(Order order, String newStatus);
+    }
+
+    public OrderAdapter(Context context, List<Order> orderList, OnStatusUpdateListener listener) {
         this.context = context;
         this.orderList = orderList;
-        this.userRole = userRole;
-        ordersRef = FirebaseDatabase.getInstance().getReference("order");
+        this.listener = listener;
     }
 
     @NonNull
@@ -45,49 +42,56 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
         Order order = orderList.get(position);
         holder.tvCustomerName.setText(order.getCustomerName());
-        holder.tvItems.setText(order.getItems());
 
-        // Spinner setup
-        String[] statuses = {"confirm order", "Preparing", "Delivery Pending", "Completed"};
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            // Build details string
+            StringBuilder itemsDetails = new StringBuilder();
+            itemsDetails.append("Items: ").append(order.getItems().size()).append("\n");
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, statuses) {
-            @Override
-            public boolean isEnabled(int pos) {
-                // If user is EMPLOYEE, disable "Completed"
-                if (userRole.equals("employee") && getItem(pos).equals("Completed")) {
-                    return false;
-                }
-                return true; // delivery man can select everything
+            for (Item item : order.getItems()) {
+                itemsDetails.append("- ")
+                        .append(item.getName())
+                        .append(" x")
+                        .append(item.getQuantity())
+                        .append("\n");
             }
 
-            @Override
-            public View getDropDownView(int pos, View convertView, ViewGroup parent) {
-                View view = super.getDropDownView(pos, convertView, parent);
-                TextView tv = (TextView) view;
+            // Take status from first item
+            String status = order.getItems().get(0).getStatus();
+            itemsDetails.append("Status: ").append(status != null ? status : "N/A").append("\n");
 
-                if (userRole.equals("employee") && getItem(pos).equals("Completed")) {
-                    tv.setTextColor(0xFFAAAAAA); // Gray out for employee
-                } else {
-                    tv.setTextColor(0xFF000000); // Black for normal
-                }
-                return view;
+            // Use order-level total price
+            itemsDetails.append("Total: Rs. ").append(order.getTotalPrice());
+
+            holder.tvItems.setText(itemsDetails.toString());
+
+            // Payment status (from first item)
+            String paymentStatus = order.getItems().get(0).getPaymentStatus();
+            if (paymentStatus != null) {
+                holder.tvPaymentStatus.setText("Payment: " + paymentStatus);
+                holder.tvPaymentStatus.setTextColor(paymentStatus.equalsIgnoreCase("Pending") ? Color.RED : Color.GREEN);
             }
-        };
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        holder.spinnerStatus.setAdapter(adapter);
+            // Spinner setup
+            String[] statuses = {"confirm order", "Preparing", "Delivery Pending", "Delivering", "Completed"};
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, statuses);
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            holder.spinnerStatus.setAdapter(spinnerAdapter);
 
-        // Set current status
-        int spinnerPosition = adapter.getPosition(order.getStatus());
-        holder.spinnerStatus.setSelection(spinnerPosition);
+            if (status != null) {
+                int spinnerPosition = spinnerAdapter.getPosition(status);
+                if (spinnerPosition >= 0) {
+                    holder.spinnerStatus.setSelection(spinnerPosition);
+                }
+            }
 
-        // Update button click
-        holder.btnUpdate.setOnClickListener(v -> {
-            String newStatus = holder.spinnerStatus.getSelectedItem().toString();
-            ordersRef.child(order.getOrderId()).child("status").setValue(newStatus)
-                    .addOnSuccessListener(aVoid -> Toast.makeText(context, "Status Updated", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e -> Toast.makeText(context, "Update Failed", Toast.LENGTH_SHORT).show());
-        });
+            holder.btnUpdate.setOnClickListener(v -> {
+                if (listener != null) {
+                    String newStatus = holder.spinnerStatus.getSelectedItem().toString();
+                    listener.onStatusUpdate(order, newStatus);
+                }
+            });
+        }
     }
 
     @Override
@@ -96,7 +100,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     }
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
-        TextView tvCustomerName, tvItems;
+        TextView tvCustomerName, tvItems, tvPaymentStatus;
         Spinner spinnerStatus;
         Button btnUpdate;
 
@@ -104,6 +108,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             super(itemView);
             tvCustomerName = itemView.findViewById(R.id.tvCustomerName);
             tvItems = itemView.findViewById(R.id.tvItems);
+            tvPaymentStatus = itemView.findViewById(R.id.tvPaymentStatus);
             spinnerStatus = itemView.findViewById(R.id.spinnerStatus);
             btnUpdate = itemView.findViewById(R.id.btnUpdate);
         }
