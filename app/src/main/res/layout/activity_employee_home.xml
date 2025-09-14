@@ -7,157 +7,58 @@
     android:orientation="vertical"
     tools:context=".EmployeeHomeActivity">
 
-    <!-- Top banner -->
-    <FrameLayout
+    <!-- Top Banner -->
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="174dp">
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/pizzabanner3" />
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:alpha="0.4"
-            android:scaleType="centerCrop"
-            android:src="@drawable/pizzabanner3" />
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_horizontal"
+        android:text="Current Orders"
+        android:textColor="#000000"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_gravity="center"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="8dp">
 
-            <TextView
-                android:layout_width="248dp"
-                android:layout_height="69dp"
-                android:layout_gravity="center"
-                android:layout_marginLeft="60dp"
-                android:layout_marginTop="30dp"
-                android:text="PizzaMania"
-                android:textColor="#000000"
-                android:textSize="40sp"
-                android:textStyle="bold" />
-
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <ImageButton
-                android:id="@+id/profileButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="center_vertical|end"
-                android:adjustViewBounds="true"
-                android:background="@android:color/transparent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/default_profile9" />
-        </LinearLayout>
-    </FrameLayout>
-
-    <!-- Pizza Details Section -->
-    <ScrollView
+    <!-- RecyclerView (fills remaining space) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerOrders"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="16dp">
+        android:layout_weight="1" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+    <!-- Bottom AppBar -->
+    <LinearLayout
+        android:id="@+id/bottomAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#333333">
+
+        <ImageButton
+            android:id="@+id/homeButton"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:divider="?android:attr/dividerHorizontal"
-            android:showDividers="middle"
-            android:dividerPadding="12dp"
-            android:background="@drawable/glass_bg">
+            android:layout_weight="1"
+            android:src="@drawable/ic_home3"
+            android:background="@null"
+            android:contentDescription="Home" />
 
-            <!-- Branch Selection -->
-            <TextView
-                android:id="@+id/branchLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Branch:"
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp" />
-
-            <Spinner
-                android:id="@+id/branchSpinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:layout_marginTop="10dp" />
-
-            <!-- Availability -->
-            <TextView
-                android:id="@+id/availableLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Availability:"
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20dp" />
-
-            <Switch
-                android:id="@+id/statusSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Available"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="10dp" />
-
-            <!-- Category -->
-            <TextView
-                android:id="@+id/categoryTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Category : "
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20dp"/>
-
-            <!-- Name -->
-            <TextView
-                android:id="@+id/nameTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Name :"
-                android:textStyle="bold"
-                android:textSize="18dp"
-                android:textColor="#000000"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20dp" />
-
-            <!-- Price -->
-            <TextView
-                android:id="@+id/priceTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Price :"
-                android:textSize="18dp"
-                android:textColor="#333333"
-                android:paddingVertical="6dp"
-                android:paddingStart="8dp"
-                android:layout_marginTop="20dp"/>
-
-            <!-- Update button -->
-            <Button
-                android:id="@+id/updateAvailableBtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Update Availability"
-                android:backgroundTint="#FFDE21"
-                android:textColor="@android:color/black"
-                android:layout_marginTop="20dp"
-                android:paddingVertical="10dp"/>
-
-        </LinearLayout>
-    </ScrollView>
-
+        <ImageButton
+            android:id="@+id/orderButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_orders4"
+            android:background="@null"
+            android:contentDescription="Branch Page" />
+    </LinearLayout>
 </LinearLayout>

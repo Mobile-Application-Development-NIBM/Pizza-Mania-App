@@ -129,7 +129,10 @@ class ChatbotDialogFragment : DialogFragment() {
         val lowerMessage = message.lowercase()
         Log.d("Chatbot", "Processing user message: $lowerMessage")
         val response = when {
-            listOf("hi", "hello", "yo", "hey").any { lowerMessage.contains(it) } -> {
+            // Check for greetings as standalone words
+            listOf("hi", "hello", "yo", "hey").any {
+                "\\b$it\\b".toRegex().containsMatchIn(lowerMessage)
+            } -> {
                 "👋 Hey there! Welcome back to PizzaBot. 🍕 Which pizza would you like today?\n" +
                         "👉 I’d recommend trying our classic Pepperoni!\n" +
                         "👉 Type 'help' to get assistance on how to use the bot!"
@@ -219,7 +222,7 @@ class ChatbotDialogFragment : DialogFragment() {
                     if (!isAdded) return@addOnSuccessListener
                     var nearestBranchID: String? = null
                     var nearestDistance = Double.MAX_VALUE
-                    val branchMap = mapOf("b001" to "Colombo", "b002" to "Galle", "b003" to "Kandy", "b004" to "Jaffna", "b005" to "Matara")
+                    val branchMap = mapOf("b001" to "Galle", "b002" to "Colombo", "b003" to "Gampaha", "b004" to "Kurunegala", "b005" to "Kalutara")
 
                     for (branchSnap in snapshot.children) {
                         val branch = branchSnap.getValue(CustomerHomeActivity.Branch::class.java)

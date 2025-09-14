@@ -11,6 +11,7 @@ firebaseFirestore = "26.0.0"
 kotlin = "1.9.25"
 coreKtx = "1.17.0"
 playServicesLocation = "21.3.0"
+playServicesMaps = "19.2.0"
 
 
 [libraries]
@@ -24,6 +25,7 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
