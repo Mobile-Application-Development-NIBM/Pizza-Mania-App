@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,65 +9,93 @@
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="8dp"
-            android:layout_marginTop="5dp">
-
-            <TextView
-                android:id="@+id/stripText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PizzaMania"
-                android:textColor="#000000"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <ImageButton
-                android:id="@+id/profileButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_vertical|end"
-                android:src="@drawable/default_profile15"
-                android:background="@null"
-                android:scaleType="centerCrop"
-                android:adjustViewBounds="true"
-                android:contentDescription="Profile Button" />
-        </LinearLayout>
-
-        <!-- Delivery Title -->
         <TextView
-            android:id="@+id/deliveryTitle"
-            android:layout_width="match_parent"
+            android:id="@+id/stripText"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pending Deliveries"
-            android:textSize="22sp"
-            android:textStyle="bold"
+            android:text="PizzaMania"
             android:textColor="#000000"
-            android:gravity="center_horizontal"
-            android:layout_marginTop="8dp" />
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/profileButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/default_profile15"
+            android:background="@null"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            android:contentDescription="Profile Button" />
     </LinearLayout>
 
-    <!-- RecyclerView for Deliveries -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/deliveryRecyclerView"
+    <!-- Scrollable content -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottomAppBar"
-        android:layout_below="@id/topBar"
-        android:padding="8dp"
-        android:clipToPadding="false" />
+        android:layout_below="@+id/topBar"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Accepted Title -->
+            <TextView
+                android:id="@+id/acceptedTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Accepted Deliveries"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="start"
+                android:paddingStart="16dp"
+                android:layout_marginTop="12dp"/>
+
+            <!-- Accepted RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/acceptedRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:padding="8dp"
+                android:clipToPadding="false" />
+
+            <!-- Pending Title -->
+            <TextView
+                android:id="@+id/pendingTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pending Deliveries"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="start"
+                android:paddingStart="16dp"
+                android:layout_marginTop="16dp"/>
+
+            <!-- Pending RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/pendingRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:padding="8dp"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Bottom AppBar -->
     <LinearLayout

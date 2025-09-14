@@ -86,38 +86,40 @@ public class LoginActivity extends AppCompatActivity {
 
         //Check Admin in SQLite
         if(adminDBHelper.checkAdmin(email,password)){
-            saveSession("Admin", email, null);
+            saveSession("Admin", email, null,null);
             redirectToHome("Admin");
             return;
         }
 
-        //CHeck Employee in Firebase
+        // Check Employee in Firebase
         employeesRef.orderByChild("email").equalTo(email).get()
                 .addOnCompleteListener(task -> {
-                    if(task.isSuccessful() && task.getResult().exists()){
-                        for(DataSnapshot snapshot : task.getResult().getChildren()) {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        for (DataSnapshot snapshot : task.getResult().getChildren()) {
                             String empEmail = snapshot.child("email").getValue(String.class);
                             String empPassword = snapshot.child("password").getValue(String.class);
+                            String empID = snapshot.child("empID").getValue(String.class);
+                            String branchID = snapshot.child("branchID").getValue(String.class); // get branch
 
-                            if(empEmail == null || empPassword == null) {
-                                Toast.makeText(LoginActivity.this, "Employee data missing", Toast.LENGTH_SHORT).show();
+                            if (empEmail == null || empPassword == null || branchID == null || branchID.isEmpty()) {
+                                Toast.makeText(LoginActivity.this, "Employee data missing or branch not set ❌", Toast.LENGTH_SHORT).show();
                                 return;
                             }
 
-                            if(email.equals(empEmail) && password.equals(empPassword)) {
-                                saveSession("Employee", email, password);
+                            if (email.equals(empEmail) && password.equals(empPassword)) {
+                                // Save session including branchID
+                                saveSession("Employee", email, empID, branchID);
                                 redirectToHome("Employee");
                                 return;
                             }
                         }
                         Toast.makeText(LoginActivity.this, "Invalid password for employee", Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        //Cheching for customers
+                    } else {
+                        // Check for deliveryman if not employee
                         loginDeliveryman(email, password);
                     }
                 })
-                .addOnFailureListener(e->
+                .addOnFailureListener(e ->
                         Toast.makeText(LoginActivity.this, "Employee check failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
 
@@ -132,14 +134,16 @@ public class LoginActivity extends AppCompatActivity {
                             String delEmail = snapshot.child("email").getValue(String.class);
                             String delPassword = snapshot.child("password").getValue(String.class);
                             String delID = snapshot.child("delID").getValue(String.class);
+                            String branchID = snapshot.child("branchID").getValue(String.class); // get branch
 
-                            if (delEmail == null || delPassword == null) {
-                                Toast.makeText(LoginActivity.this, "Deliveryman data missing", Toast.LENGTH_SHORT).show();
+                            if (delEmail == null || delPassword == null || branchID == null || branchID.isEmpty()) {
+                                Toast.makeText(LoginActivity.this, "Deliveryman data missing or branch not set ❌", Toast.LENGTH_SHORT).show();
                                 return;
                             }
 
                             if (email.equals(delEmail) && password.equals(delPassword)) {
-                                saveSession("Deliveryman", email, delID);
+                                // Save session including branchID
+                                saveSession("Deliveryman", email, delID, branchID);
                                 redirectToHome("Deliveryman");
                                 return;
                             }
@@ -154,6 +158,7 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(LoginActivity.this, "Deliveryman check failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
     }
+
     private void loginCustomer (String email, String password){
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(authTask -> {
@@ -177,7 +182,7 @@ public class LoginActivity extends AppCompatActivity {
                                                 return;
                                             }
 
-                                            saveSession("Customer", email, userID);
+                                            saveSession("Customer", email, userID,null);
                                             redirectToHome("Customer");
                                             return;
                                         }
@@ -197,12 +202,19 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private  void saveSession(String role, String email, String userID){
+    private void saveSession(String role, String email, String userID, String branchID) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean("isLoggedIn", true);
         editor.putString("role", role);
         editor.putString("email", email);
         if (userID != null) editor.putString("userID", userID);
+
+        // Save branchID for deliverymen and employees
+        if (("Deliveryman".equals(role) || "Employee".equals(role))
+                && branchID != null && !branchID.isEmpty()) {
+            editor.putString("branchID", branchID);
+        }
+
         editor.apply();
     }
 

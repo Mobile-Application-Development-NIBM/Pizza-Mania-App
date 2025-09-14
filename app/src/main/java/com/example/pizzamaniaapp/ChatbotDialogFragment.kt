@@ -129,7 +129,10 @@ class ChatbotDialogFragment : DialogFragment() {
         val lowerMessage = message.lowercase()
         Log.d("Chatbot", "Processing user message: $lowerMessage")
         val response = when {
-            listOf("hi", "hello", "yo", "hey").any { lowerMessage.contains(it) } -> {
+            // Check for greetings as standalone words
+            listOf("hi", "hello", "yo", "hey").any {
+                "\\b$it\\b".toRegex().containsMatchIn(lowerMessage)
+            } -> {
                 "👋 Hey there! Welcome back to PizzaBot. 🍕 Which pizza would you like today?\n" +
                         "👉 I’d recommend trying our classic Pepperoni!\n" +
                         "👉 Type 'help' to get assistance on how to use the bot!"
