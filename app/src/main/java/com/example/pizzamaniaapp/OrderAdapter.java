@@ -45,6 +45,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         if (order.getItems() != null && !order.getItems().isEmpty()) {
             StringBuilder itemsDetails = new StringBuilder();
+            itemsDetails.append("Branch: ").append(order.getBranchID()).append("\n");   // ✅ show BranchID
             itemsDetails.append("Items: ").append(order.getItems().size()).append("\n");
 
             for (Item item : order.getItems()) {
