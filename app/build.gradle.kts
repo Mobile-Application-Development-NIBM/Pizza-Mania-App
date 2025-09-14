@@ -80,4 +80,6 @@ dependencies {
 
     implementation("com.google.firebase:firebase-database:21.0.0")
     implementation("com.google.firebase:firebase-auth:23.0.0")
+    //Circle profile
+    implementation("de.hdodenhof:circleimageview:3.1.0")
 }
