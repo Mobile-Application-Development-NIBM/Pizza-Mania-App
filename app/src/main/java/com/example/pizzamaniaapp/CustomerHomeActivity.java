@@ -301,6 +301,14 @@ public class CustomerHomeActivity extends AppCompatActivity {
                 currentUsername = "User";
             }
         });
+
+        // -------------------- PROFILE BUTTON --------------------
+        ImageButton profileButton = findViewById(R.id.profileButton);
+        profileButton.setOnClickListener(v -> {
+            Intent intent = new Intent(CustomerHomeActivity.this, AccountActivity.class);
+            startActivity(intent);
+        });
+
     }
 
     // -------------------- UPDATE CART BADGE --------------------

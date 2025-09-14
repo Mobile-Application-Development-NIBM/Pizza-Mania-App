@@ -31,13 +31,112 @@
             android:layout_marginTop="10dp"/>
     </LinearLayout>
 
-    <!-- RecyclerView for User Info -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvUserInfo"
+    <!-- Name -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Name"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+    <EditText
+        android:id="@+id/tvName"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="20dp"/>
+        android:layout_height="wrap_content"
+        android:hint="Enter Name"
+        android:enabled="false"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+
+    <!-- Email -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Email"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+    <EditText
+        android:id="@+id/tvEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:enabled="false"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+
+    <!-- Phone -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Phone"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+    <EditText
+        android:id="@+id/tvPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Phone"
+        android:enabled="false"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+
+    <!-- Address -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Address"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+    <EditText
+        android:id="@+id/tvAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Address"
+        android:enabled="false"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+
+    <!-- Password -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Password"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/tvPassword"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Enter New Password"
+            android:enabled="false"
+            android:inputType="textPassword"
+            android:textSize="16sp"/>
+
+        <Button
+            android:id="@+id/btnChangePassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Password"
+            android:layout_marginTop="12dp"/>
+
+
+    </LinearLayout>
+
+    <!-- Update Details Button -->
+    <Button
+        android:id="@+id/btnUpdate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update Details"
+        android:backgroundTint="@android:color/holo_blue_light"
+        android:textColor="@android:color/white"/>
 
     <!-- Logout Button at Bottom -->
     <Button
