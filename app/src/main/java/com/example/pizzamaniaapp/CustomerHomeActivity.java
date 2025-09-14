@@ -420,6 +420,9 @@ public class CustomerHomeActivity extends AppCompatActivity {
         // Show loading dialog while scanning branches
         showLoadingDialog("Finding nearest branch...");
 
+        // Log the user's location to verify it's correct
+        Log.d(TAG, "User Location: Lat=" + userLocation.getLatitude() + ", Lng=" + userLocation.getLongitude());
+
         // Query the "branches" node in Firebase once
         dbRef.child("branches").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -444,6 +447,10 @@ public class CustomerHomeActivity extends AppCompatActivity {
                         // Calculate distance between user and branch
                         float distance = userLocation.distanceTo(branchLocation);
 
+                        // Log the distance for each branch to diagnose the issue
+                        Log.d(TAG, "Branch " + branch.name + " (" + branch.branchID + "): distance=" + distance + "m");
+                        Log.d(TAG, "  -> Branch Location: Lat=" + branch.latitude + ", Lng=" + branch.longitude);
+
                         // Keep track of the nearest branch
                         if (distance < nearestDistance) {
                             nearestDistance = distance;
@@ -458,6 +465,7 @@ public class CustomerHomeActivity extends AppCompatActivity {
                 if (nearestBranchID != null) {
                     // Save the nearest branch globally
                     currentBranchID = nearestBranchID;
+                    Log.d(TAG, "Nearest branch found: " + getBranchByID(currentBranchID).name + " (" + currentBranchID + ")");
 
                     // Mark that we successfully fetched a location
                     locationFetched = true;
@@ -606,20 +614,32 @@ public class CustomerHomeActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    // Cart exists in Firebase -> load it
-                    currentCart = snapshot.getValue(Cart.class);
+                    // Cart exists in Firebase. Get the cart object.
+                    Cart loadedCart = snapshot.getValue(Cart.class);
+
+                    // IMPORTANT: Check if the loaded cart's branch ID matches the current nearest branch.
+                    if (loadedCart != null && loadedCart.getBranchID() != null && loadedCart.getBranchID().equals(branchID)) {
+                        // The cart is valid for this branch, so load it.
+                        currentCart = loadedCart;
+                    } else {
+                        // The cart is from a different branch or is invalid.
+                        // Reset it by creating a new empty cart for the correct branch.
+                        currentCart = new Cart(cartID, branchID, customerID);
+                        cartRef.setValue(currentCart); // Overwrite the old cart in Firebase.
+                        showCustomToast("Your cart has been reset for the nearest branch.");
+                    }
                 } else {
-                    // Cart doesn't exist -> create a new empty cart
+                    // Cart doesn't exist, create a new one for the correct branch.
                     currentCart = new Cart(cartID, branchID, customerID);
                 }
 
-                // Update the cart badge (number of items) in UI
+                // Update the cart badge (number of items) in UI.
                 updateCartBadge();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Firebase read failed
+                // Firebase read failed.
                 showCustomToast("Failed to load cart");
             }
         });
@@ -1160,6 +1180,11 @@ public class CustomerHomeActivity extends AppCompatActivity {
             this.items = new ArrayList<>();
             this.totalItems = 0;
             this.totalPrice = 0;
+        }
+
+        // Add this new method
+        public String getBranchID() {
+            return branchID;
         }
     }
 
