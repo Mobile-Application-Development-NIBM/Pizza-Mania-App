@@ -83,10 +83,10 @@ class ChatbotDialogFragment : DialogFragment() {
         if (isAdded) {
             messages.add(ChatMessage("👋 Welcome to PizzaBot! 🍕\n" +
                     "You can try commands like:\n" +
-                    "👉 'show menu'\n" +
-                    "👉 'track order'\n" +
-                    "👉 'update profile'\n" +
-                    "👉 'help'\n\n" +
+                    "👉 'show menu' to view the menu for the nearest branch\n" +
+                    "👉 'track order' to check your order status\n" +
+                    "👉 'update profile' to update your details\n" +
+                    "👉 'help' for more options\n\n" +
                     "Or just say hi to get started!", false))
             chatAdapter.notifyItemInserted(messages.size - 1)
             recyclerView.scrollToPosition(messages.size - 1)
@@ -130,33 +130,13 @@ class ChatbotDialogFragment : DialogFragment() {
         Log.d("Chatbot", "Processing user message: $lowerMessage")
         val response = when {
             listOf("hi", "hello", "yo", "hey").any { lowerMessage.contains(it) } -> {
-                "👋 Hey there! Welcome back to PizzaBot. 🍕 Please select a branch with 'select branch <branch_name>' or type 'show menu' to view the nearest branch's menu."
+                "👋 Hey there! Welcome back to PizzaBot. 🍕 Which pizza would you like today?\n" +
+                        "👉 I’d recommend trying our classic Pepperoni!\n" +
+                        "👉 Type 'help' to get assistance on how to use the bot!"
             }
             lowerMessage.contains("show menu") || lowerMessage.contains("list items") -> {
-                if (selectedBranch == null) {
-                    findNearestBranchAndShowMenu()
-                    "Fetching nearest branch and its menu..."
-                } else {
-                    showMenu()
-                }
-            }
-            lowerMessage.startsWith("select branch") -> {
-                val branchInput = lowerMessage.replace("select branch", "").trim()
-                val branchMap = mapOf("b001" to "Colombo", "b002" to "Galle", "b003" to "Kandy", "b004" to "Jaffna", "b005" to "Matara")
-                val branchCode = branchMap.entries.find { it.value.lowercase() == branchInput.lowercase() }?.key
-                Log.d("Chatbot", "Branch input: $branchInput | Selected branch code: $branchCode")
-                if (branchCode != null) {
-                    selectedBranch = branchCode
-                    messages.add(ChatMessage("Branch selected: ${branchMap[branchCode]}. Now showing menu...", false))
-                    chatAdapter.notifyItemInserted(messages.size - 1)
-                    recyclerView.scrollToPosition(messages.size - 1)
-                    showMenu()
-                } else {
-                    messages.add(ChatMessage("Invalid branch. Available branches: ${branchMap.values.joinToString(", ")}", false))
-                    chatAdapter.notifyItemInserted(messages.size - 1)
-                    recyclerView.scrollToPosition(messages.size - 1)
-                }
-                return
+                findNearestBranchAndShowMenu()
+                "Fetching nearest branch and its menu..."
             }
             lowerMessage.contains("vegetarian") || lowerMessage.contains("non-veg") -> selectCategory(lowerMessage)
             lowerMessage.contains("add topping") || lowerMessage.contains("extra") -> addToppings(lowerMessage)
@@ -169,11 +149,10 @@ class ChatbotDialogFragment : DialogFragment() {
             lowerMessage.contains("profile") || lowerMessage.contains("address") -> updateProfile(lowerMessage)
             lowerMessage.contains("feedback") || lowerMessage.contains("rate") -> submitFeedback()
             lowerMessage.contains("support") || lowerMessage.contains("help") -> contactSupport()
-            lowerMessage.contains("settings") || lowerMessage.contains("password") || lowerMessage.contains("log out") -> manageAccount(lowerMessage)
             else -> {
                 var selected = false
                 if (selectedBranch == null) {
-                    messages.add(ChatMessage("Please select a branch first with 'select branch <branch_name>' or type 'show menu' to use the nearest branch.", false))
+                    messages.add(ChatMessage("Please allow location access or try 'show menu' to use the nearest branch.", false))
                     chatAdapter.notifyItemInserted(messages.size - 1)
                     recyclerView.scrollToPosition(messages.size - 1)
                     return
@@ -193,7 +172,7 @@ class ChatbotDialogFragment : DialogFragment() {
                         }
                     }
                     if (!selected) {
-                        messages.add(ChatMessage("I didn't understand. Try 'show menu', 'select branch <branch_name>', or 'help'.", false))
+                        messages.add(ChatMessage("I didn't understand. Try 'show menu', 'add to cart', or 'help'.", false))
                         chatAdapter.notifyItemInserted(messages.size - 1)
                     }
                     recyclerView.scrollToPosition(messages.size - 1)
@@ -230,7 +209,7 @@ class ChatbotDialogFragment : DialogFragment() {
             .addOnSuccessListener { location ->
                 if (!isAdded) return@addOnSuccessListener
                 if (location == null) {
-                    messages.add(ChatMessage("Unable to get location. Please try again or select a branch manually.", false))
+                    messages.add(ChatMessage("Unable to get location. Please try again or check your location settings.", false))
                     chatAdapter.notifyItemInserted(messages.size - 1)
                     recyclerView.scrollToPosition(messages.size - 1)
                     return@addOnSuccessListener
@@ -248,7 +227,7 @@ class ChatbotDialogFragment : DialogFragment() {
                             val branchLocation = Location("")
                             branchLocation.latitude = branch.latitude
                             branchLocation.longitude = branch.longitude
-                            val distance = location.distanceTo(branchLocation).toDouble() // Convert Float to Double
+                            val distance = location.distanceTo(branchLocation).toDouble()
                             if (distance < nearestDistance) {
                                 nearestDistance = distance
                                 nearestBranchID = branch.branchID
@@ -263,21 +242,21 @@ class ChatbotDialogFragment : DialogFragment() {
                         recyclerView.scrollToPosition(messages.size - 1)
                         showMenu()
                     } else {
-                        messages.add(ChatMessage("No branches found. Please select a branch manually with 'select branch <branch_name>'.", false))
+                        messages.add(ChatMessage("No branches found. Please try again or contact support.", false))
                         chatAdapter.notifyItemInserted(messages.size - 1)
                         recyclerView.scrollToPosition(messages.size - 1)
                     }
                 }.addOnFailureListener { exception ->
                     if (!isAdded) return@addOnFailureListener
                     Log.e("Chatbot", "Error fetching branches: ${exception.message}", exception)
-                    messages.add(ChatMessage("Error fetching branches: ${exception.message}", false))
+                    messages.add(ChatMessage("Error fetching branches: ${exception.message}. Please try again.", false))
                     chatAdapter.notifyItemInserted(messages.size - 1)
                     recyclerView.scrollToPosition(messages.size - 1)
                 }
             }.addOnFailureListener { exception ->
                 if (!isAdded) return@addOnFailureListener
                 Log.e("Chatbot", "Error getting location: ${exception.message}", exception)
-                messages.add(ChatMessage("Error getting location: ${exception.message}. Please select a branch manually.", false))
+                messages.add(ChatMessage("Error getting location: ${exception.message}. Please check your location settings.", false))
                 chatAdapter.notifyItemInserted(messages.size - 1)
                 recyclerView.scrollToPosition(messages.size - 1)
             }
@@ -287,11 +266,11 @@ class ChatbotDialogFragment : DialogFragment() {
         Log.d("Chatbot", "Starting menu fetch for branch: $selectedBranch")
         if (selectedBranch == null) {
             if (isAdded) {
-                messages.add(ChatMessage("Please select a branch first with 'select branch <branch_name>' or type 'show menu' to use the nearest branch.", false))
+                messages.add(ChatMessage("Please allow location access or try 'show menu' again to use the nearest branch.", false))
                 chatAdapter.notifyItemInserted(messages.size - 1)
                 recyclerView.scrollToPosition(messages.size - 1)
             }
-            return "Please select a branch first."
+            return "Please allow location access to view the menu."
         }
 
         // Set up timeout for Firebase query (10 seconds)
@@ -378,10 +357,10 @@ class ChatbotDialogFragment : DialogFragment() {
         val category = if (message.contains("vegetarian")) "Vegetarian" else "Non-Vegetarian"
         var response = "Showing $category items:\n"
         if (selectedBranch == null) {
-            messages.add(ChatMessage("Please select a branch first with 'select branch <branch_name>' or type 'show menu' to use the nearest branch.", false))
+            messages.add(ChatMessage("Please allow location access or try 'show menu' to use the nearest branch.", false))
             chatAdapter.notifyItemInserted(messages.size - 1)
             recyclerView.scrollToPosition(messages.size - 1)
-            return "Please select a branch first."
+            return "Please allow location access to view the menu."
         }
         database.child("menu").orderByChild("category").equalTo(category).get().addOnSuccessListener { snapshot ->
             if (!isAdded) return@addOnSuccessListener
@@ -432,10 +411,10 @@ class ChatbotDialogFragment : DialogFragment() {
             return "Please select a menu item first."
         }
         if (selectedBranch == null) {
-            messages.add(ChatMessage("Please select a branch first with 'select branch <branch_name>' or type 'show menu' to use the nearest branch.", false))
+            messages.add(ChatMessage("Please allow location access or try 'show menu' to use the nearest branch.", false))
             chatAdapter.notifyItemInserted(messages.size - 1)
             recyclerView.scrollToPosition(messages.size - 1)
-            return "Please select a branch first."
+            return "Please allow location access to add to cart."
         }
 
         database.child("menu").orderByChild("name").equalTo(currentPizza).get().addOnSuccessListener { snapshot ->
@@ -677,15 +656,14 @@ class ChatbotDialogFragment : DialogFragment() {
 
     private fun contactSupport(): String {
         return "Contact support at: evanonmail@gmail.com or call: +94752260132\n\n" +
-                "Type : \n" +
-                "'show menu' - To view the menu.\n"+
-                "'add to cart' - To add items to the cart.\n"+
-                "'show cart' - To view your cart.\n"+
-                "'add toppings' - To add extra toppings.\n"+
-                "'pay' - To pay for your order.\n"+
-                "Feel free to reach us out for further more information."
+                "Type:\n" +
+                "👉 'show menu' - To view the menu for the nearest branch\n" +
+                "👉 'add to cart' - To add items to the cart\n" +
+                "👉 'show cart' - To view your cart\n" +
+                "👉 'add topping' - To add extra toppings\n" +
+                "👉 'pay' - To pay for your order\n" +
+                "Feel free to reach out for more information."
     }
-
 
     private fun manageAccount(message: String): String {
         return when {
