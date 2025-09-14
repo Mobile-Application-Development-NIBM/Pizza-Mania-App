@@ -219,7 +219,7 @@ class ChatbotDialogFragment : DialogFragment() {
                     if (!isAdded) return@addOnSuccessListener
                     var nearestBranchID: String? = null
                     var nearestDistance = Double.MAX_VALUE
-                    val branchMap = mapOf("b001" to "Colombo", "b002" to "Galle", "b003" to "Kandy", "b004" to "Jaffna", "b005" to "Matara")
+                    val branchMap = mapOf("b001" to "Galle", "b002" to "Colombo", "b003" to "Gampaha", "b004" to "Kurunegala", "b005" to "Kalutara")
 
                     for (branchSnap in snapshot.children) {
                         val branch = branchSnap.getValue(CustomerHomeActivity.Branch::class.java)
