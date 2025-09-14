@@ -246,6 +246,11 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
                 @Override
                 public void onFinish() {
                     if (!undone[0]) {
+                        // ⏱ Update deliveredTimestamp only after 15 sec passed
+                        db.child("orders").child(order.orderID)
+                                .child("deliveredTimestamp")
+                                .setValue(System.currentTimeMillis());
+
                         showLoadingDialog("Refreshing orders...");
                         loadDeliveries();
                     }
@@ -276,10 +281,10 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
         public double customerLat;
         public double customerLng;
         public String branchID;
+        public long deliveredTimestamp; // ⏱ added for completed time
 
         public DeliveryItem() {}
     }
-
 
     private AlertDialog loadingDialog;
 
