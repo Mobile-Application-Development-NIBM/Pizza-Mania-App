@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.button.MaterialButton;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -63,10 +65,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Log.e(TAG, "Map fragment NOT found!");
         }
 
-        ImageButton backButton = findViewById(R.id.backButton);
+        MaterialButton backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(v -> {
             Log.d(TAG, "Back button clicked, finishing activity");
             finish();
+        });
+
+        MaterialButton goToMapButton = findViewById(R.id.goToMapButton);
+        goToMapButton.setOnClickListener(v -> {
+            // Launch Google Maps navigation to customer
+            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + customerLat + "," + customerLng);
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
         });
     }
 
@@ -123,27 +134,25 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void showMarkers() {
-        Log.d(TAG, "showMarkers: adding customer marker");
         LatLng customer = new LatLng(customerLat, customerLng);
 
+        // Customer marker (RED)
         mMap.addMarker(new MarkerOptions()
-                .position(customer)
-                .title("Customer")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                        .position(customer)
+                        .title("Customer")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
+                .showInfoWindow(); // show label
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "Location permissions missing, cannot add deliveryman marker");
             return;
         }
 
-        Log.d(TAG, "Starting location updates for deliveryman...");
-
         LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(5000) // every 5 seconds
+                .setInterval(5000)
                 .setFastestInterval(2000);
 
         fusedLocationClient.requestLocationUpdates(locationRequest, new com.google.android.gms.location.LocationCallback() {
@@ -151,28 +160,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             public void onLocationResult(@NonNull com.google.android.gms.location.LocationResult result) {
                 Location location = result.getLastLocation();
                 if (location != null) {
-                    Log.d(TAG, "Deliveryman location update: lat=" + location.getLatitude() + ", lng=" + location.getLongitude());
                     mMap.clear(); // clear previous markers
-                    mMap.addMarker(new MarkerOptions()
-                            .position(customer)
-                            .title("Customer")
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
 
+                    // Customer marker
+                    mMap.addMarker(new MarkerOptions()
+                                    .position(customer)
+                                    .title("Customer")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
+                            .showInfoWindow();
+
+                    // Deliveryman marker (BLUE)
                     LatLng deliveryman = new LatLng(location.getLatitude(), location.getLongitude());
                     mMap.addMarker(new MarkerOptions()
-                            .position(deliveryman)
-                            .title("You")
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                                    .position(deliveryman)
+                                    .title("You")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
+                            .showInfoWindow();
 
+                    // Zoom to include both
                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
                     builder.include(customer);
                     builder.include(deliveryman);
                     LatLngBounds bounds = builder.build();
-                    int padding = 150;
-                    Log.d(TAG, "Animating camera to show both markers");
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
-                } else {
-                    Log.w(TAG, "Deliveryman location is null in update!");
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
                 }
             }
         }, getMainLooper());

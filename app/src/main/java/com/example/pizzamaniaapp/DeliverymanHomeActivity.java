@@ -45,6 +45,7 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
     private ImageButton homeButton, deliveryHistoryButton, profileButton;
 
     private TextView pendingTitle, acceptedTitle;
+    private View noDeliveriesLayout; // wrapper for image + text
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +65,9 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
         // RecyclerViews for Pending & Accepted
         pendingRecyclerView = findViewById(R.id.pendingRecyclerView);
         acceptedRecyclerView = findViewById(R.id.acceptedRecyclerView);
+
+        noDeliveriesLayout = findViewById(R.id.noDeliveriesLayout);
+
         pendingRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         acceptedRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -163,6 +167,19 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
                 // Update adapters
                 pendingAdapter.updateList(pendingList);
                 acceptedAdapter.updateList(acceptedList);
+
+                boolean hasAccepted = !acceptedList.isEmpty();
+                boolean hasPending = !pendingList.isEmpty();
+
+                boolean showPlaceholder = !hasAccepted && !hasPending;
+                noDeliveriesLayout.setVisibility(showPlaceholder ? View.VISIBLE : View.GONE);
+
+                // hide the lists when showing placeholder
+                acceptedTitle.setVisibility(hasAccepted ? View.VISIBLE : View.GONE);
+                acceptedRecyclerView.setVisibility(hasAccepted ? View.VISIBLE : View.GONE);
+                pendingTitle.setVisibility(hasPending ? View.VISIBLE : View.GONE);
+                pendingRecyclerView.setVisibility(hasPending ? View.VISIBLE : View.GONE);
+
 
                 pendingRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                     @Override
