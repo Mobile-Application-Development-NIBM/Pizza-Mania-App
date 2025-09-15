@@ -44,7 +44,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -145,6 +147,36 @@ public class AccountActivity extends AppCompatActivity {
         // Email cannot be directly edited
         tvEmail.setEnabled(false);
     }
+
+
+    // Handle permissions properly
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_PERMISSIONS) {
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+
+            if (allGranted) {
+                // Now permissions are available → directly open picker
+                showImagePickerDialog();
+            } else {
+                Toast.makeText(this,
+                        "Permissions are required to use camera/gallery",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+
 
     private void loadData() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -249,23 +281,43 @@ public class AccountActivity extends AppCompatActivity {
 
     // Check camera and storage permissions
     private boolean checkAndRequestPermissions(){
-        String[] permissions = {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-        boolean allGranted = true;
+        List<String> neededPermissions = new ArrayList<>();
 
-        for (String p : permissions) {
-            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) allGranted = false;
+        // Always require camera
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            neededPermissions.add(Manifest.permission.CAMERA);
         }
-        if (!allGranted){
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSIONS);
+
+        // For Android 13+ use READ_MEDIA_IMAGES, else use READ_EXTERNAL_STORAGE
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
+                    != PackageManager.PERMISSION_GRANTED) {
+                neededPermissions.add(Manifest.permission.READ_MEDIA_IMAGES);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                neededPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+        }
+
+        if (!neededPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(this,
+                    neededPermissions.toArray(new String[0]),
+                    REQUEST_PERMISSIONS);
             return false;
         }
-        return true;
+
+        return true; // all granted
     }
+
 
     private void openCamera(){
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File imageFile = createImageFile();
         if (imageFile != null) {
+            // FileProvider is set up in Manifest + res/xml/file_paths.xml
             cameraImageUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", imageFile);
             cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
             startActivityForResult(cameraIntent, REQUEST_CAMERA);
