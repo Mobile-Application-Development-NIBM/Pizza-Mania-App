@@ -1,73 +1,127 @@
-// ========== Activity Summary ==========
-// CustomerHomeActivity
-// - Main customer-facing screen for viewing menus, managing a shopping cart, and placing orders.
-// - Features:
-//     * Automatically detects user's location to find the nearest branch.
-//     * Loads and displays menu items specifically for that branch.
-//     * Provides a real-time synchronized shopping cart tied to the user's ID.
-//     * Allows users to view menu details, adjust item quantities, and add items to the cart.
-//     * Includes a search bar with auto-suggestions for menu items.
-//     * Navigates to a chatbot for customer support.
-//     * Uses custom UI components for loading states, toasts, and dialogs.
-// ======================================
-
-
-// onCreate()
-// - Initializes Firebase, Google location services, and UI components.
-// - Sets up the RecyclerView to display menus.
-// - Sets up a real-time listener for the user's cart to keep the UI in sync.
-// - Configures the chatbot button and cart button click handlers.
-// - Checks for location permissions and initiates the location-based branch selection.
-
-
-// checkPermissionsAndLoad()
-// - Checks if the app has `ACCESS_FINE_LOCATION` permission.
-// - If not granted, requests it from the user.
-// - If granted, proceeds to check if GPS is enabled.
-
-
-// checkGpsAndFetchLocation()
-// - Verifies if the device's GPS provider is enabled.
-// - If GPS is off, displays a dialog asking the user to enable it.
-// - If GPS is on, calls `fetchCurrentLocation()` to get the user's coordinates.
-
-
-// fetchCurrentLocation()
-// - Uses the `FusedLocationProviderClient` to get the device's current location with high accuracy.
-// - Once a location is obtained, it calls `findNearestBranchAndLoadMenus()`.
-// - Handles cases where the location is null (e.g., no GPS signal).
-
-
-// findNearestBranchAndLoadMenus(userLocation)
-// - Queries Firebase for a list of all branches.
-// - Calculates the distance from the user's location to each branch.
-// - Determines the nearest branch and stores its ID.
-// - After finding the nearest branch, calls `loadMenusForBranch()` and `loadCart()`.
-
-
-// loadMenusForBranch(branchID)
-// - Fetches all menu items from Firebase.
-// - Filters the list to include only those menu items that are available at the specified `branchID`.
-// - Updates the RecyclerView adapter with this filtered list and refreshes search suggestions.
-
-
-// loadCart(branchID, customerID)
-// - Fetches the user's cart data from Firebase based on their unique ID.
-// - If the cart exists, it loads the data; otherwise, it creates a new empty cart object.
-// - Updates the cart badge on the screen.
-
-
-// setupCartListener(customerID)
-// - Establishes a real-time Firebase listener on the user's cart.
-// - Any changes to the cart in the database will automatically trigger an update to the UI, keeping the cart badge and data synchronized across sessions.
-
-
-// showMenuPopup(item)
-// - Displays a pop-up dialog with details of a specific menu item.
-// - Allows the user to view the item's name, price, and description.
-// - Includes controls to adjust the quantity of the item.
-// - The "Add to Cart" button handles updating the cart data locally and in Firebase.
-// ======================================
+/**
+ * ========== Activity Summary ==========
+ * CustomerHomeActivity
+ * - Main customer-facing screen for viewing menus, managing a shopping cart, and placing orders.
+ * - Features:
+ * * Automatically detects user's location to find the nearest branch.
+ * * Loads and displays menu items specifically for that branch.
+ * * Provides a real-time synchronized shopping cart tied to the user's ID.
+ * * Allows users to view menu details, adjust item quantities, and add items to the cart.
+ * * Includes a search bar with auto-suggestions for menu items.
+ * * Navigates to a chatbot for customer support.
+ * * Uses custom UI components for loading states, toasts, and dialogs.
+ * ======================================
+ *
+ *
+ * // onCreate()
+ * - Initializes Firebase, Google location services, and UI components.
+ * - Sets up the RecyclerView to display menus.
+ * - Sets up a real-time listener for the user's cart to keep the UI in sync.
+ * - Configures the chatbot button and cart button click handlers.
+ * - Checks for location permissions and initiates the location-based branch selection.
+ *
+ *
+ * // checkPermissionsAndLoad()
+ * - Checks if the app has `ACCESS_FINE_LOCATION` permission.
+ * - If not granted, requests it from the user.
+ * - If granted, proceeds to check if GPS is enabled.
+ *
+ *
+ * // checkGpsAndFetchLocation()
+ * - Verifies if the device's GPS provider is enabled.
+ * - If GPS is off, displays a dialog asking the user to enable it.
+ * - If GPS is on, calls `fetchCurrentLocation()` to get the user's coordinates.
+ *
+ *
+ * // fetchCurrentLocation()
+ * - Uses the `FusedLocationProviderClient` to get the device's current location with high accuracy.
+ * - Once a location is obtained, it calls `findNearestBranchAndLoadMenus()`.
+ * - Handles cases where the location is null (e.g., no GPS signal).
+ *
+ *
+ * // findNearestBranchAndLoadMenus(userLocation)
+ * - Queries Firebase for a list of all branches.
+ * - Calculates the distance from the user's location to each branch.
+ * - Determines the nearest branch and stores its ID.
+ * - After finding the nearest branch, calls `loadMenusForBranch()` and `loadCart()`.
+ *
+ *
+ * // loadMenusForBranch(branchID)
+ * - Fetches all menu items from Firebase.
+ * - Filters the list to include only those menu items that are available at the specified `branchID`.
+ * - Updates the RecyclerView adapter with this filtered list and refreshes search suggestions.
+ *
+ *
+ * // loadCart(branchID, customerID)
+ * - Fetches the user's cart data from Firebase based on their unique ID.
+ * - If the cart exists and is from the correct branch, it loads the data.
+ * - If the cart is from a different branch or is invalid, it is reset.
+ * - If the cart does not exist, a new empty cart object is created.
+ * - Updates the cart badge on the screen.
+ *
+ *
+ * // setupCartListener(customerID)
+ * - Establishes a real-time Firebase listener on the user's cart.
+ * - Any changes to the cart in the database will automatically trigger an update to the UI, keeping the cart badge and data synchronized across sessions.
+ *
+ *
+ * // showMenuPopup(item)
+ * - Displays a pop-up dialog with details of a specific menu item.
+ * - Allows the user to view the item's name, price, and description.
+ * - Includes controls to adjust the quantity of the item.
+ * - The "Add to Cart" button handles updating the cart data locally and in Firebase.
+ *
+ *
+ * // showCartPopup()
+ * - Displays a pop-up dialog showing the current items in the user's cart.
+ * - Dynamically shows either a list of cart items or an "empty cart" message.
+ * - Displays the total price of all items in the cart.
+ * - Includes a "Place Order" button that initiates the order process.
+ *
+ *
+ * // updateCartAfterRemoval(removedItem)
+ * - Recalculates the total items and total price of the cart after an item has been removed.
+ * - Updates the cart object in Firebase to reflect these changes.
+ *
+ *
+ * // placeOrder()
+ * - Validates the cart to ensure it is not empty.
+ * - Generates a new, sequential order ID (e.g., "o001", "o002").
+ * - Gathers all necessary order details, including the customer's location, total price, and a list of ordered items.
+ * - Saves the new order object to the "orders" table in Firebase.
+ * - On success, it clears the current cart and updates the UI accordingly.
+ *
+ *
+ * // setupSearch()
+ * - Initializes the `AutoCompleteTextView` and an `ImageButton` for the search function.
+ * - Attaches a click listener to the search button and a listener for the "Enter" key on the keyboard to trigger a search.
+ *
+ *
+ * // performSearch(query)
+ * - Filters the `menuList` to find items where the name or category matches the search `query`.
+ * - Updates the `RecyclerView` adapter to display only the filtered search results.
+ * - If the query is empty, it resets the view to show all menu items.
+ *
+ *
+ * // updateSearchSuggestions()
+ * - Clears and rebuilds the list of search suggestions.
+ * - Populates the suggestion list with the names and categories of all menus available at the current branch.
+ * - Binds the updated suggestions to the `AutoCompleteTextView` for real-time auto-completion.
+ *
+ *
+ * // showLoadingDialog(message)
+ * - Displays a custom dialog with a progress spinner and a message to indicate that the app is performing a background task (e.g., fetching data).
+ *
+ *
+ * // hideLoadingDialog()
+ * - Dismisses the loading dialog, making the UI interactive again.
+ *
+ *
+ * // showCustomToast(message)
+ * - Displays a custom, non-intrusive message at the top of the screen.
+ * - Includes a countdown timer and a progress bar to show how long the message will be visible before it auto-dismisses.
+ * ======================================
+ */
 
 
 // Defines the package name for this class (helps organize your project structure)
@@ -95,8 +149,10 @@ import android.view.ViewGroup; // Used for layouts and View hierarchy
 import android.view.WindowManager; // To adjust window properties like size, dim, etc.
 import android.widget.ArrayAdapter; // Adapter for displaying a list of suggestions (e.g., search box)
 import android.widget.AutoCompleteTextView; // Text field with auto-complete suggestions
+import android.widget.Button;
 import android.widget.ImageButton; // Button with an image (used for cart/search buttons)
 import android.widget.ImageView; // To display images
+import android.widget.LinearLayout;
 import android.widget.ProgressBar; // To show progress (used in custom toast + loading)
 import android.widget.TextView; // Basic text UI component
 
@@ -301,14 +357,6 @@ public class CustomerHomeActivity extends AppCompatActivity {
                 currentUsername = "User";
             }
         });
-
-        // -------------------- PROFILE BUTTON --------------------
-        ImageButton profileButton = findViewById(R.id.profileButton);
-        profileButton.setOnClickListener(v -> {
-            Intent intent = new Intent(CustomerHomeActivity.this, AccountActivity.class);
-            startActivity(intent);
-        });
-
     }
 
     // -------------------- UPDATE CART BADGE --------------------
@@ -803,7 +851,7 @@ public class CustomerHomeActivity extends AppCompatActivity {
 
     // ---------------- CART POPUP ----------------
     private void showCartPopup() {
-        if (currentCart == null) return; // Safety: no cart, no popup
+        if (currentCart == null) return;
 
         // Inflate custom layout for cart popup
         View popupView = LayoutInflater.from(this).inflate(R.layout.cart_popup, null);
@@ -814,56 +862,49 @@ public class CustomerHomeActivity extends AppCompatActivity {
 
         // Configure window appearance
         if (popupDialog.getWindow() != null) {
-            int width = (int) (330 * getResources().getDisplayMetrics().density + 0.5f); // Convert dp to pixels
+            int width = (int) (330 * getResources().getDisplayMetrics().density + 0.5f);
             popupDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             popupDialog.getWindow().getDecorView().post(() ->
                     popupDialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT));
             popupDialog.getWindow().setGravity(Gravity.CENTER);
         }
 
-        // Close button
         ImageButton closeBtn = popupView.findViewById(R.id.closeCartButton);
         closeBtn.setOnClickListener(v -> popupDialog.dismiss());
 
-        // RecyclerView for cart items
         RecyclerView cartRecyclerView = popupView.findViewById(R.id.cartRecyclerView);
         cartRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         cartRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
 
-        // Views for empty cart or total price
         ImageView emptyImage = popupView.findViewById(R.id.emptyCartImage);
         cartPopupTotalText = popupView.findViewById(R.id.cartTotalAmount);
 
-        // Runnable to update cart UI whenever cart changes
         Runnable updateCartUI = () -> {
             if (currentCart.items == null || currentCart.items.isEmpty()) {
-                cartRecyclerView.setVisibility(View.GONE);  // hide list
-                emptyImage.setVisibility(View.VISIBLE);     // show empty image
-                cartPopupTotalText.setText("Cart is empty"); // show message
+                cartRecyclerView.setVisibility(View.GONE);
+                emptyImage.setVisibility(View.VISIBLE);
+                cartPopupTotalText.setText("Cart is empty");
             } else {
                 cartRecyclerView.setVisibility(View.VISIBLE);
                 emptyImage.setVisibility(View.GONE);
-                cartPopupTotalText.setText("Total: Rs. " + currentCart.totalPrice); // show total
+                cartPopupTotalText.setText("Total: Rs. " + currentCart.totalPrice);
             }
         };
-        updateCartUI.run(); // initial UI setup
+        updateCartUI.run();
 
-        // Adapter for RecyclerView
         CartAdapter cartAdapter = new CartAdapter(currentCart.items, this);
         cartRecyclerView.setAdapter(cartAdapter);
 
-        // Place order button
         MaterialButton placeOrderBtn = popupView.findViewById(R.id.placeOrderButton);
         placeOrderBtn.setOnClickListener(v -> {
             if (currentCart.items == null || currentCart.items.isEmpty()) {
                 showCustomToast("Cart is empty");
                 return;
             }
-            placeOrder();         // call your order processing method
-            popupDialog.dismiss(); // close popup
+            // --- NEW CODE: Show the payment popup instead of placing the order directly ---
+            showPaymentPopup(popupDialog); // Pass the cart popup dialog to be dismissed later
         });
 
-        // Observe changes in adapter and update UI accordingly
         cartAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onChanged() { updateCartUI.run(); }
@@ -872,6 +913,95 @@ public class CustomerHomeActivity extends AppCompatActivity {
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) { updateCartUI.run(); }
         });
+    }
+
+    // --- NEW METHOD: Show the payment selection popup ---
+    private void showPaymentPopup(AlertDialog cartPopup) {
+        // Inflate the new payment popup layout
+        View paymentView = LayoutInflater.from(this).inflate(R.layout.payment_popup, null);
+
+        // Create AlertDialog with the inflated view
+        AlertDialog paymentDialog = new AlertDialog.Builder(this).setView(paymentView).create();
+
+        // Ensure the dialog's window is not null
+        if (paymentDialog.getWindow() != null) {
+            // Set the background to transparent so our custom layout background is visible
+            paymentDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+            // Set the dialog's size to match the parent
+            paymentDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+
+            // This ensures the dialog appears at the center of the screen
+            paymentDialog.getWindow().setGravity(Gravity.CENTER);
+        }
+
+        // Show the payment dialog
+        paymentDialog.show();
+
+        // Get references to UI elements in the payment popup
+        LinearLayout tilePayInApp = paymentView.findViewById(R.id.tilePayInApp);
+        LinearLayout tilePayCash = paymentView.findViewById(R.id.tilePayCash);
+        LinearLayout fakePaymentForm = paymentView.findViewById(R.id.fakePaymentForm);
+        Button btnPayFake = paymentView.findViewById(R.id.btnPayFake);
+        ImageButton btnClosePayment = paymentView.findViewById(R.id.btnClosePayment);
+
+        // Click listener for the "Pay In App" tile
+        tilePayInApp.setOnClickListener(v -> {
+            // Make the payment form visible and hide the cash tile
+            fakePaymentForm.setVisibility(View.VISIBLE);
+            // --- UPDATED: Remove the line that hides the Pay in Cash tile ---
+            tilePayInApp.setVisibility(View.GONE);
+        });
+
+        // Click listener for the "Pay In Cash" tile
+        tilePayCash.setOnClickListener(v -> {
+            // Pass "Pending" as the payment status and proceed with the order
+            placeOrder("Pending", paymentDialog, cartPopup);
+        });
+
+        // Click listener for the "Pay Now" button in the fake form
+        btnPayFake.setOnClickListener(v -> {
+            // Handle the Pay In App logic
+            handlePayInApp(paymentDialog, cartPopup);
+        });
+
+        // Close button listener
+        btnClosePayment.setOnClickListener(v -> paymentDialog.dismiss());
+    }
+
+    private void handlePayInApp(AlertDialog paymentDialog, AlertDialog cartPopup) {
+        if (currentCart == null || currentCart.items.isEmpty()) {
+            showCustomToast("Cart is empty");
+            return;
+        }
+
+        showLoadingDialog("Processing payment...");
+
+        // Create a new table reference for payments
+        DatabaseReference paymentsRef = FirebaseDatabase.getInstance().getReference("payments");
+        String paymentID = paymentsRef.push().getKey(); // Generate a unique ID for the payment
+
+        // Create a new Payment object
+        Payment newPayment = new Payment(
+                paymentID,
+                currentUserID,
+                currentUsername,
+                currentCart.totalPrice,
+                System.currentTimeMillis(),
+                "In-App" // Method of payment
+        );
+
+        // Save the payment details to Firebase
+        paymentsRef.child(paymentID).setValue(newPayment)
+                .addOnSuccessListener(aVoid -> {
+                    hideLoadingDialog();
+                    // On success, proceed to place the order with "Paid" status
+                    placeOrder("Paid", paymentDialog, cartPopup);
+                })
+                .addOnFailureListener(e -> {
+                    hideLoadingDialog();
+                    showCustomToast("Payment failed. Try again.");
+                });
     }
 
     // Update the cart after removing menu items
@@ -900,30 +1030,17 @@ public class CustomerHomeActivity extends AppCompatActivity {
         dbRef.child("carts").child(currentCart.cartID).setValue(currentCart);
     }
 
-
-    private void placeOrder() {
-        // -------------------------------
-        // Step 1: Validate Cart
-        // -------------------------------
-        // Ensure that the cart exists and has items
+    // --- UPDATED METHOD: `placeOrder` now accepts a payment status and dialogs to dismiss ---
+    private void placeOrder(String paymentStatus, AlertDialog paymentDialog, AlertDialog cartPopup) {
         if (currentCart == null || currentCart.items == null || currentCart.items.isEmpty()) return;
 
-        // -------------------------------
-        // Step 2: Show Loading
-        // -------------------------------
         showLoadingDialog("Placing order...");
 
-        // -------------------------------
-        // Step 3: Get Last Order ID from Firebase
-        // -------------------------------
         dbRef.child("orders").orderByKey().limitToLast(1)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        // Default order ID if no previous orders exist
                         String newOrderID = "o001";
-
-                        // Generate sequential order ID based on last order
                         if (snapshot.exists()) {
                             for (DataSnapshot lastOrderSnap : snapshot.getChildren()) {
                                 String lastID = lastOrderSnap.getKey();
@@ -934,60 +1051,40 @@ public class CustomerHomeActivity extends AppCompatActivity {
                             }
                         }
 
-                        // -------------------------------
-                        // Step 4: Determine Customer Location
-                        // -------------------------------
-                        // Use the last fetched user location from GPS
                         double userLat = 0, userLng = 0;
-                        if (locationFetched && fusedLocationClient != null) {
-                            // Note: You may want to cache the last Location object globally
-                            // For example, keep a variable `lastUserLocation` in the activity
-                            // Here we assume you have a global Location object named `lastUserLocation`
-                            if (lastUserLocation != null) {
-                                userLat = lastUserLocation.getLatitude();
-                                userLng = lastUserLocation.getLongitude();
-                            } else {
-                                // Fallback if somehow location is null
-                                showCustomToast("Location unavailable, using branch location instead");
-                                Branch branch = getBranchByID(currentCart.branchID);
-                                if (branch != null) {
-                                    userLat = branch.latitude;
-                                    userLng = branch.longitude;
-                                }
+                        if (locationFetched && lastUserLocation != null) {
+                            userLat = lastUserLocation.getLatitude();
+                            userLng = lastUserLocation.getLongitude();
+                        } else {
+                            Branch branch = getBranchByID(currentCart.branchID);
+                            if (branch != null) {
+                                userLat = branch.latitude;
+                                userLng = branch.longitude;
                             }
                         }
 
                         long timestamp = System.currentTimeMillis();
 
-                        // -------------------------------
-                        // Step 5: Create Order Object
-                        // -------------------------------
                         Order order = new Order(
                                 newOrderID,
                                 currentCart.branchID,
                                 currentUserID,
                                 currentUsername,
-                                userLat,          // use user's current latitude
-                                userLng,          // use user's current longitude
-                                "",               // assignedDeliverymanID
-                                "Order Pending",  // order status
+                                userLat,
+                                userLng,
+                                "",
+                                "Order Pending",
                                 currentCart.totalPrice,
                                 timestamp,
-                                0,                // delivered timestamp
-                                "Pending",        // payment status
+                                0,
+                                paymentStatus, // Use the payment status passed as a parameter
                                 new ArrayList<>(currentCart.items)
                         );
 
-                        // -------------------------------
-                        // Step 6: Save Order to Firebase
-                        // -------------------------------
                         dbRef.child("orders").child(newOrderID).setValue(order)
                                 .addOnSuccessListener(aVoid -> {
                                     showCustomToast("Order placed successfully!");
 
-                                    // -------------------------------
-                                    // Step 7: Reset Cart
-                                    // -------------------------------
                                     currentCart.items.clear();
                                     currentCart.totalItems = 0;
                                     currentCart.totalPrice = 0;
@@ -995,6 +1092,9 @@ public class CustomerHomeActivity extends AppCompatActivity {
 
                                     updateCartBadge();
                                     hideLoadingDialog();
+                                    // Dismiss both dialogs after the order is successfully placed
+                                    paymentDialog.dismiss();
+                                    cartPopup.dismiss();
                                 })
                                 .addOnFailureListener(e -> {
                                     showCustomToast("Failed to place order");
@@ -1227,6 +1327,28 @@ public class CustomerHomeActivity extends AppCompatActivity {
             this.deliveredTimestamp = deliveredTimestamp;
             this.paymentStatus = paymentStatus;
             this.items = items; // ✅ Stores all the items the customer ordered
+        }
+    }
+
+    // --- NEW MODEL CLASS ---
+    // Represents a payment transaction
+    public static class Payment {
+        public String paymentID;
+        public String customerID;
+        public String customerName;
+        public double amount;
+        public long timestamp;
+        public String paymentMethod; // "In-App" or "Cash"
+
+        public Payment() {} // Default constructor for Firebase
+
+        public Payment(String paymentID, String customerID, String customerName, double amount, long timestamp, String paymentMethod) {
+            this.paymentID = paymentID;
+            this.customerID = customerID;
+            this.customerName = customerName;
+            this.amount = amount;
+            this.timestamp = timestamp;
+            this.paymentMethod = paymentMethod;
         }
     }
 

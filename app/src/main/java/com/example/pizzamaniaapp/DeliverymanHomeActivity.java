@@ -45,7 +45,7 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
     private ImageButton homeButton, deliveryHistoryButton, profileButton;
 
     private TextView pendingTitle, acceptedTitle;
-    private View noDeliveriesLayout; // wrapper for image + text
+    private View noDeliveriesLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,79 +206,190 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
     }
 
     private void setupAdapters() {
+        // Pending adapter: Accept order
         pendingAdapter.setOnAcceptClickListener(position -> {
             DeliveryItem order = pendingAdapter.getItem(position);
+            Log.d(TAG, "Accept clicked for order: " + (order != null ? order.orderID : "null"));
 
-            // Check if deliveryman already has an active order
             if (acceptedAdapter.getItemCount() > 0) {
                 showCustomToast("⚠ You can accept only 1 order at a time");
+                Log.d(TAG, "Cannot accept: another order is already active. Returning.");
                 return;
             }
 
             showLoadingDialog("Accepting delivery...");
             Map<String, Object> updates = new HashMap<>();
-            updates.put("assignedDeliverymanID", getCurrentDeliverymanID()); // match Firebase field
+            updates.put("assignedDeliverymanID", getCurrentDeliverymanID());
             updates.put("status", "Delivering");
+            Log.d(TAG, "Attempting to update order status to 'Delivering' for order: " + order.orderID);
 
             db.child("orders").child(order.orderID).updateChildren(updates)
                     .addOnSuccessListener(a -> {
                         hideLoadingDialog();
+                        Log.d(TAG, "Order successfully accepted. Status updated to 'Delivering' for order: " + order.orderID);
                         loadDeliveries();
+                        Log.d(TAG, "loadDeliveries() called after successful acceptance.");
                     })
-                    .addOnFailureListener(e -> hideLoadingDialog());
+                    .addOnFailureListener(e -> {
+                        hideLoadingDialog();
+                        showCustomToast("Failed to accept delivery");
+                        Log.e(TAG, "Failed to accept order: " + order.orderID, e);
+                    });
         });
 
         pendingAdapter.setOnViewMapClickListener(position -> {
             DeliveryItem order = pendingAdapter.getItem(position);
-            openMap(order.customerLat, order.customerLng);
+            Log.d(TAG, "View map clicked for order: " + (order != null ? order.orderID : "null"));
+            if (order != null) {
+                openMap(order.customerLat, order.customerLng);
+            }
         });
 
+        // Accepted adapter: Complete/revert order
         acceptedAdapter.setOnCompleteClickListener(position -> {
             DeliveryItem order = acceptedAdapter.getItem(position);
-
-            if ("Completed".equalsIgnoreCase(order.status)) {
-                // Undo: set back to Delivery Pending
-                order.status = "Delivery Pending";
-                db.child("orders").child(order.orderID).child("status").setValue(order.status);
-                showCustomToast("↩ Delivery set back to Pending");
+            if (order == null) {
+                Log.w(TAG, "Complete clicked but order item is null. Aborting.");
                 return;
             }
 
-            // First click: mark Completed
-            order.status = "Completed";
-            db.child("orders").child(order.orderID).child("status").setValue(order.status);
-            showCustomToast("✓ Delivery Completed");
+            Log.d(TAG, "Complete clicked for order: " + order.orderID + " | paymentMethod: " + order.paymentMethod + " | paymentStatus: " + order.paymentStatus);
 
-            final boolean[] undone = {false};
-            CountDownTimer timer = new CountDownTimer(15000, 1000) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    DeliveryItem current = acceptedAdapter.getItem(position);
-                    if (!"Completed".equalsIgnoreCase(current.status)) {
-                        undone[0] = true;
-                        cancel();
-                    }
-                }
+            // --- ADDED LOGGING HERE ---
+            Log.d(TAG, "Order details from adapter: orderID=" + order.orderID +
+                    ", paymentMethod=" + order.paymentMethod +
+                    ", paymentStatus=" + order.paymentStatus);
+            // --------------------------
 
-                @Override
-                public void onFinish() {
-                    if (!undone[0]) {
-                        // ⏱ Update deliveredTimestamp only after 15 sec passed
-                        db.child("orders").child(order.orderID)
-                                .child("deliveredTimestamp")
-                                .setValue(System.currentTimeMillis());
+            db.child("orders").child(order.orderID).child("status")
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            String currentStatus = snapshot.getValue(String.class);
+                            Log.d(TAG, "Current status from DB: " + currentStatus);
+                            if (currentStatus == null) {
+                                Log.w(TAG, "Current status from DB is null. Aborting.");
+                                return;
+                            }
 
-                        showLoadingDialog("Refreshing orders...");
-                        loadDeliveries();
-                    }
-                }
-            };
-            timer.start();
+                            Map<String, Object> updates = new HashMap<>();
+
+                            if ("Completed".equalsIgnoreCase(currentStatus)) {
+                                Log.d(TAG, "Order status is already 'Completed'. Reverting to 'Delivering' immediately.");
+                                updates.put("status", "Delivering");
+                                db.child("orders").child(order.orderID).updateChildren(updates)
+                                        .addOnSuccessListener(aVoid -> {
+                                            showCustomToast("↩ Delivery reverted to Delivering");
+                                            Log.d(TAG, "Order reverted to 'Delivering' successfully: " + order.orderID);
+                                            loadDeliveries();
+                                            Log.d(TAG, "loadDeliveries() called after reverting status.");
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            showCustomToast("Failed to revert delivery");
+                                            Log.e(TAG, "Failed to revert order: " + order.orderID, e);
+                                        });
+                            } else {
+                                Log.d(TAG, "Order status is not 'Completed'. Marking as 'Completed'.");
+                                updates.put("status", "Completed");
+                                db.child("orders").child(order.orderID).updateChildren(updates)
+                                        .addOnSuccessListener(aVoid -> {
+                                            showCustomToast("✓ Delivery Completed");
+                                            Log.d(TAG, "Order status updated to 'Completed' successfully: " + order.orderID);
+
+                                            // Start 15-second timer
+                                            Log.d(TAG, "Starting 15-second timer for order: " + order.orderID);
+                                            new CountDownTimer(15000, 15000) {
+                                                @Override
+                                                public void onTick(long millisUntilFinished) {
+                                                    // Not needed, but keeping for clarity
+                                                }
+
+                                                @Override
+                                                public void onFinish() {
+                                                    Log.d(TAG, "15-second timer finished for order: " + order.orderID);
+                                                    // Read status once before updating payment
+                                                    db.child("orders").child(order.orderID).child("status")
+                                                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                @Override
+                                                                public void onDataChange(@NonNull DataSnapshot snap) {
+                                                                    String finalStatus = snap.getValue(String.class);
+                                                                    Log.d(TAG, "Final status read from DB before payment update: " + finalStatus);
+                                                                    if (!"Completed".equalsIgnoreCase(finalStatus)) {
+                                                                        Log.d(TAG, "Order status changed from 'Completed', skipping payment update logic.");
+                                                                        return;
+                                                                    }
+
+                                                                    long deliveredTime = System.currentTimeMillis();
+                                                                    Map<String, Object> finalUpdates = new HashMap<>();
+                                                                    finalUpdates.put("deliveredTimestamp", deliveredTime);
+                                                                    Log.d(TAG, "Attempting to update deliveredTimestamp: " + deliveredTime);
+
+                                                                    db.child("orders").child(order.orderID).updateChildren(finalUpdates)
+                                                                            .addOnSuccessListener(aVoid1 -> Log.d(TAG, "Delivered timestamp updated successfully."))
+                                                                            .addOnFailureListener(e -> Log.e(TAG, "Failed to update delivered timestamp", e));
+
+                                                                    // --- MODIFIED CONDITION HERE ---
+                                                                    Log.d(TAG, "New payment condition check: Is paymentStatus 'Pending'? " + "Pending".equalsIgnoreCase(order.paymentStatus));
+                                                                    if ("Pending".equalsIgnoreCase(order.paymentStatus)) {
+                                                                        // -----------------------------
+                                                                        Log.d(TAG, "Payment conditions met. Attempting to update paymentStatus to 'Paid' and create new payment record.");
+
+                                                                        // Update payment status
+                                                                        db.child("orders").child(order.orderID)
+                                                                                .child("paymentStatus").setValue("Paid")
+                                                                                .addOnSuccessListener(aVoid12 -> Log.d(TAG, "Payment status updated to 'Paid' successfully."))
+                                                                                .addOnFailureListener(e -> Log.e(TAG, "Failed to update payment status to 'Paid'", e));
+
+                                                                        // Add new payment record
+                                                                        Map<String, Object> paymentData = new HashMap<>();
+                                                                        paymentData.put("amount", order.totalPrice);
+                                                                        paymentData.put("customerID", order.customerID);
+                                                                        paymentData.put("customerName", order.customerName);
+                                                                        paymentData.put("paymentID", order.orderID);
+                                                                        paymentData.put("paymentMethod", "Cash");
+                                                                        paymentData.put("timestamp", deliveredTime);
+                                                                        Log.d(TAG, "Payment record data to be added: " + paymentData.toString());
+
+                                                                        db.child("payments").child(order.orderID).setValue(paymentData)
+                                                                                .addOnSuccessListener(aVoid13 -> Log.d(TAG, "New payment record added successfully for order: " + order.orderID))
+                                                                                .addOnFailureListener(e -> Log.e(TAG, "Failed to add new payment record for order: " + order.orderID, e));
+                                                                    } else {
+                                                                        Log.d(TAG, "Payment conditions not met. Skipping payment update and record creation.");
+                                                                    }
+
+                                                                    showLoadingDialog("Refreshing orders...");
+                                                                    loadDeliveries();
+                                                                    Log.d(TAG, "loadDeliveries() called after payment/timestamp updates.");
+                                                                }
+
+                                                                @Override
+                                                                public void onCancelled(@NonNull DatabaseError error) {
+                                                                    Log.e(TAG, "Failed to read order status before payment update: " + error.getMessage(), error.toException());
+                                                                }
+                                                            });
+                                                }
+                                            }.start();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            showCustomToast("Failed to complete delivery");
+                                            Log.e(TAG, "Failed to mark order Completed: " + order.orderID, e);
+                                        });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Log.e(TAG, "Failed to read current order status: " + error.getMessage(), error.toException());
+                        }
+                    });
         });
 
         acceptedAdapter.setOnViewMapClickListener(position -> {
             DeliveryItem order = acceptedAdapter.getItem(position);
-            openMap(order.customerLat, order.customerLng);
+            Log.d(TAG, "View map clicked for accepted order: " + (order != null ? order.orderID : "null"));
+            if (order != null) {
+                openMap(order.customerLat, order.customerLng);
+            }
         });
     }
 
@@ -294,14 +405,19 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
         public String customerName;
         public String customerAddress;
         public String status;
-        public String assignedDeliverymanID; // ✅ match Firebase
+        public String assignedDeliverymanID;
         public double customerLat;
         public double customerLng;
         public String branchID;
-        public long deliveredTimestamp; // ⏱ added for completed time
+        public long deliveredTimestamp;
+        public String paymentStatus;
+        public String paymentMethod;
+        public double totalPrice; // CHANGE THIS LINE
+        public String customerID;
 
         public DeliveryItem() {}
     }
+
 
     private AlertDialog loadingDialog;
 
@@ -371,4 +487,3 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
         }.start();
     }
 }
-
