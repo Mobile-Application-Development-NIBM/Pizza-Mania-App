@@ -24,11 +24,6 @@
 
         <!-- Activities -->
         <activity
-            android:name=".MapActivity"
-            android:exported="false">
-        </activity>
-
-        <activity
             android:name=".DeliverymanDeliveryHistoryActivity"
             android:exported="false">
         </activity>
@@ -48,9 +43,10 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+
         </activity>
 
         <activity
@@ -76,11 +72,14 @@
         <activity
             android:name=".EmployeeHomeActivity"
             android:exported="false">
+
+
         </activity>
 
         <activity
             android:name=".EmployeeOrderActivity"
             android:exported="false">
+
         </activity>
 
         <activity
@@ -93,6 +92,7 @@
             android:exported="false">
         </activity>
 
+        <!-- Customer Home is launcher -->
         <activity
             android:name=".CustomerHomeActivity"
             android:exported="true">
@@ -105,10 +105,11 @@
             android:theme="@style/Theme.PizzaManiaApp">
         </activity>
 
+        <!-- (Optional) Maps API Key if needed -->
+        <!--
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBe0rB9tuZNPttNimDlwphpEF96QEFzlGU">
-        </meta-data>
+            android:value="@string/google_maps_key" />
+        -->
     </application>
-
 </manifest>
