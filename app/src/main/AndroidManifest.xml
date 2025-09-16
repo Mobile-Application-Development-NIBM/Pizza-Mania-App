@@ -26,10 +26,11 @@
         android:theme="@style/Theme.PizzaManiaApp"
         tools:targetApi="31">
         <activity
+            android:name=".DeliveryHistoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".HistoryOrderActivity"
-            android:exported="false">
-
-        </activity>
+            android:exported="false"></activity>
         <activity
             android:name=".order_history"
             android:exported="false" /> <!-- Activities -->
@@ -53,7 +54,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            </activity>
+        </activity>
         <activity
             android:name=".AdminBranchEmployeeManagementActivity"
             android:exported="false" />

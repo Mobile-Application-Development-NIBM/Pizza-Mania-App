@@ -1,6 +1,7 @@
 package com.example.pizzamaniaapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,7 +44,7 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
     private RecyclerView pendingRecyclerView, acceptedRecyclerView;
     private DeliveryAdapter pendingAdapter, acceptedAdapter;
 
-    private ImageButton homeButton, deliveryHistoryButton, profileButton;
+    private ImageButton homeButton, deliveryHistoryButton ;
 
     private TextView pendingTitle, acceptedTitle;
     private View noDeliveriesLayout;
@@ -81,13 +83,12 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
         // Buttons
         homeButton = findViewById(R.id.homeButton);
         deliveryHistoryButton = findViewById(R.id.deliveryHistoryButton);
-        profileButton = findViewById(R.id.profileButton);
+
 
         homeButton.setOnClickListener(v -> loadDeliveries());
         deliveryHistoryButton.setOnClickListener(v ->
                 startActivity(new Intent(this, DeliverymanDeliveryHistoryActivity.class)));
-        profileButton.setOnClickListener(v ->
-                startActivity(new Intent(this, AccountActivity.class)));
+
 
         pendingTitle = findViewById(R.id.pendingTitle);
         acceptedTitle = findViewById(R.id.acceptedTitle);
@@ -98,6 +99,32 @@ public class DeliverymanHomeActivity extends AppCompatActivity {
 
         setupAdapters(); // Setup click listeners
         loadDeliveries(); // Load both lists
+
+        // -------------------- Order History --------------------
+        ImageButton deliveryHistoryButton = findViewById(R.id.deliveryHistoryButton);
+        deliveryHistoryButton.setOnClickListener(v -> {
+            Intent intent = new Intent(DeliverymanHomeActivity.this, DeliveryHistoryActivity.class);
+            startActivity(intent);
+        });
+
+        // -------------------- LOG Out Button  --------------------
+        ImageButton LogoutButton = findViewById(R.id.LogoutButton);
+        LogoutButton.setOnClickListener(v -> {
+            // 1. Try sign out from FirebaseAuth (only works if current user is FirebaseAuth user)
+            FirebaseAuth.getInstance().signOut();
+
+            // 2. Clear session data in SharedPreferences
+            SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.apply();
+
+            // 3. Redirect user back to LoginActivity
+            Intent intent = new Intent(DeliverymanHomeActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        });
     }
 
     // Returns the branch ID of the currently logged-in deliveryman

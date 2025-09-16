@@ -1,6 +1,8 @@
 package com.example.pizzamaniaapp;
 
 import java.util.List;
+import com.google.firebase.database.PropertyName;
+
 
 public class Order {
     private String branchID;
@@ -14,7 +16,11 @@ public class Order {
     private List<Item> items;
 
     // Firebase key (not stored in DB)
-    private String orderId;
+    private String orderID;
+    private String assignedDeliverymanID;
+    private String paymentStatus;
+    private long timestamp;      // optional
+
 
     public Order() {}
 
@@ -45,6 +51,17 @@ public class Order {
     public List<Item> getItems() { return items; }
     public void setItems(List<Item> items) { this.items = items; }
 
-    public String getOrderId() { return orderId; }
-    public void setOrderId(String orderId) { this.orderId = orderId; }
+    @PropertyName("orderID")
+    public String getOrderId() { return orderID; }
+    @PropertyName("orderID")
+    public void setOrderId(String orderId) { this.orderID = orderId; }
+
+    public String getAssignedDeliverymanID() { return assignedDeliverymanID; }
+    public void setAssignedDeliverymanID(String assignedDeliverymanID) { this.assignedDeliverymanID = assignedDeliverymanID; }
+
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public long getTimestamp() { return timestamp; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 }
