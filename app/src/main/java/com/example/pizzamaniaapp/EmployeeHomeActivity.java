@@ -1,11 +1,22 @@
 package com.example.pizzamaniaapp;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,7 +36,11 @@ public class EmployeeHomeActivity extends AppCompatActivity {
     private List<Order> orderList;
     private OrderAdapter adapter;
     private DatabaseReference ordersRef;
+    private ValueEventListener ordersListener;
     private Handler handler = new Handler();
+    private AlertDialog loadingDialog; // ⏳ Loading dialog
+    private String currentBranchID; // 🌍 Moved to a class variable
+    private Runnable pendingRefreshRunnable; // 🏃 Holds the pending refresh task
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,91 +58,167 @@ public class EmployeeHomeActivity extends AppCompatActivity {
         });
         recyclerOrders.setAdapter(adapter);
 
+        // Get the branch ID once
+        currentBranchID = getSharedPreferences("MyAppPrefs", MODE_PRIVATE).getString("branchID", null);
+
+        // Show loading when opening
+        showLoadingDialog("Loading orders...");
         loadOrders();
     }
 
-    private void loadOrders() {
-        // Retrieve the branch ID from SharedPreferences
-        String currentBranchID = getSharedPreferences("MyAppPrefs", MODE_PRIVATE).getString("branchID", null);
-
-        // If branch ID is not set, show an error and return
-        if (currentBranchID == null || currentBranchID.isEmpty()) {
-            Toast.makeText(EmployeeHomeActivity.this, "Branch not set! Cannot load orders.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        ordersRef.addValueEventListener(new ValueEventListener() {
+    // Create a listener that can be attached/removed
+    private void createOrdersListener() {
+        ordersListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 orderList.clear();
-
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Order order = dataSnapshot.getValue(Order.class);
                     if (order != null) {
                         order.setOrderId(dataSnapshot.getKey());
-
-                        // 🔹 Filter orders by the branchID and status
-                        if (currentBranchID.equals(order.getBranchID()) &&
+                        if (currentBranchID != null && currentBranchID.equals(order.getBranchID()) &&
                                 ("confirm order".equalsIgnoreCase(order.getStatus()) ||
-                                        "Preparing".equalsIgnoreCase(order.getStatus()))) {
+                                        "Preparing".equalsIgnoreCase(order.getStatus()) ||
+                                        "order pending".equalsIgnoreCase(order.getStatus()))) {
                             orderList.add(order);
                         }
                     }
                 }
                 adapter.notifyDataSetChanged();
+                hideLoadingDialog();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(EmployeeHomeActivity.this, "Failed to load orders", Toast.LENGTH_SHORT).show();
+                showCustomToast("Failed to load orders");
+                hideLoadingDialog();
             }
-        });
+        };
     }
 
-    // ✅ Update all items + order-level status
-    private void updateOrderStatus(Order order, String newStatus) {
-        if (order.getItems() == null) return;
-
-        // update every item in Firebase
-        for (int i = 0; i < order.getItems().size(); i++) {
-            int finalI = i;
-            ordersRef.child(order.getOrderId())
-                    .child("items")
-                    .child(String.valueOf(i))
-                    .child("status")
-                    .setValue(newStatus)
-                    .addOnSuccessListener(aVoid -> Log.d("EmployeeHome", "Item " + finalI + " updated"))
-                    .addOnFailureListener(e -> Log.e("EmployeeHome", "Update failed: " + e.getMessage()));
+    private void loadOrders() {
+        if (currentBranchID == null || currentBranchID.isEmpty()) {
+            showCustomToast("Branch not set! Cannot load orders.");
+            hideLoadingDialog();
+            return;
         }
 
-        // update order-level status in Firebase
+        // Remove previous listener to prevent duplication
+        if (ordersListener != null) {
+            ordersRef.removeEventListener(ordersListener);
+        }
+
+        // Add the listener back to start listening for changes
+        createOrdersListener();
+        ordersRef.addValueEventListener(ordersListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Always remove the listener and pending callbacks to prevent memory leaks
+        if (ordersListener != null) {
+            ordersRef.removeEventListener(ordersListener);
+        }
+        if (pendingRefreshRunnable != null) {
+            handler.removeCallbacks(pendingRefreshRunnable);
+        }
+    }
+
+    private void updateOrderStatus(Order order, String newStatus) {
+        if (order == null) return;
+
+        // 🛑 Cancel any existing pending refresh before proceeding
+        if (pendingRefreshRunnable != null) {
+            handler.removeCallbacks(pendingRefreshRunnable);
+            pendingRefreshRunnable = null;
+        }
+
+        // Temporarily remove the listener before the update
+        if (ordersListener != null) {
+            ordersRef.removeEventListener(ordersListener);
+        }
+
         ordersRef.child(order.getOrderId())
                 .child("status")
                 .setValue(newStatus)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Status Updated Successfully", Toast.LENGTH_SHORT).show();
-
-                    // ✅ If changed to Delivery Pending → wait 5 sec before removing locally
                     if ("Delivery Pending".equalsIgnoreCase(newStatus)) {
-                        Toast.makeText(this, "Order will disappear in 5 seconds", Toast.LENGTH_LONG).show();
+                        // 1. Show custom message
+                        showCustomToast("Order will disappear in 15 seconds...");
 
-                        handler.postDelayed(() -> {
-                            int indexToRemove = -1;
-                            for (int i = 0; i < orderList.size(); i++) {
-                                if (orderList.get(i).getOrderId().equals(order.getOrderId())) {
-                                    indexToRemove = i;
-                                    break;
-                                }
-                            }
-                            if (indexToRemove != -1) {
-                                orderList.remove(indexToRemove);
-                                adapter.notifyItemRemoved(indexToRemove);
-                            }
-                        }, 5000);
+                        // 2. Define the runnable and post it
+                        pendingRefreshRunnable = () -> {
+                            showLoadingDialog("Refreshing orders...");
+                            loadOrders();
+                            pendingRefreshRunnable = null; // Clear the runnable after it's executed
+                        };
+                        handler.postDelayed(pendingRefreshRunnable, 15000); // ⏳ 15 seconds delay
+                    } else {
+                        // For all other status updates, re-attach the listener immediately
+                        showCustomToast("Status Updated Successfully");
+                        loadOrders();
                     }
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Update Failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                .addOnFailureListener(e -> {
+                    showCustomToast("Update Failed: " + e.getMessage());
+                    // If update fails, re-attach the listener
+                    loadOrders();
+                });
+    }
+
+    // ---------------- LOADING & TOAST ----------------
+
+    private void showLoadingDialog(String message) {
+        if (loadingDialog != null && loadingDialog.isShowing()) return;
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null);
+        TextView textView = view.findViewById(R.id.loadingText);
+        textView.setText(message);
+        loadingDialog = new AlertDialog.Builder(this).setView(view).setCancelable(false).create();
+        loadingDialog.show();
+        if (loadingDialog.getWindow() != null) {
+            int width = (int) (300 * getResources().getDisplayMetrics().density);
+            int height = (int) (180 * getResources().getDisplayMetrics().density);
+            loadingDialog.getWindow().setLayout(width, height);
+            loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+    }
+
+    private void hideLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
+    }
+
+    private void showCustomToast(String message) {
+        View layout = LayoutInflater.from(this).inflate(R.layout.custom_message, null);
+        TextView toastMessage = layout.findViewById(R.id.toast_message);
+        ImageView close = layout.findViewById(R.id.toast_close);
+        ProgressBar progressBar = layout.findViewById(R.id.toast_progress);
+
+        toastMessage.setText(message);
+        progressBar.setProgress(100);
+
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(layout).create();
+        close.setOnClickListener(v -> dialog.dismiss());
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setDimAmount(0f);
+            WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+            params.width = WindowManager.LayoutParams.MATCH_PARENT;
+            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            params.gravity = Gravity.TOP;
+            params.y = 50;
+            dialog.getWindow().setAttributes(params);
+        }
+        dialog.show();
+
+        new CountDownTimer(3000, 50) {
+            public void onTick(long millisUntilFinished) {
+                int progress = (int) Math.max(0, Math.round((millisUntilFinished / 3000.0) * 100));
+                progressBar.setProgress(progress);
+            }
+            public void onFinish() {
+                if (dialog.isShowing()) dialog.dismiss();
+            }
+        }.start();
     }
 }

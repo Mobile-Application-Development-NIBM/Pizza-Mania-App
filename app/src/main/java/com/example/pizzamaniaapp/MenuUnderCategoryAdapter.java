@@ -40,10 +40,8 @@ public class MenuUnderCategoryAdapter extends RecyclerView.Adapter<MenuUnderCate
     @NonNull
     @Override
     public MenuViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflates the custom layout for a single menu item from XML
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.customer_menu_item_layout, parent, false);
-        // Returns a new ViewHolder that holds the inflated view
+                .inflate(R.layout.customer_menu_grid_item_layout, parent, false); // CHANGED LINE
         return new MenuViewHolder(view);
     }
 

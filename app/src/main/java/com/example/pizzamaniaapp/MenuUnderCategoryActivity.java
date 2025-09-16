@@ -102,6 +102,7 @@ import androidx.appcompat.app.AppCompatActivity; // 🏠 Base class for modern A
 import androidx.core.graphics.Insets; // 📏 Represents system bar insets (like status and navigation bars).
 import androidx.core.view.ViewCompat; // 🔧 Adds backward-compatible features for Views.
 import androidx.core.view.WindowInsetsCompat; // 📐 Helps handle screen areas covered by system UI across versions.
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager; // 📜 Arranges RecyclerView items in a vertical or horizontal list.
 import androidx.recyclerview.widget.RecyclerView; // 📚 A powerful view for displaying scrollable lists of items.
 
@@ -156,7 +157,11 @@ public class MenuUnderCategoryActivity extends AppCompatActivity { // 🏠 Defin
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this); // 📡 Sets up location service client.
 
         recyclerView = findViewById(R.id.viewAllRecyclerView); // 📋 Finds RecyclerView from layout to display menus.
-        recyclerView.setLayoutManager(new LinearLayoutManager(this)); // 📜 Arranges items vertically.
+
+        // ====================================================================================
+        // 🍕 UPDATED: Changed from LinearLayoutManager to GridLayoutManager for a 2-column grid
+        // ====================================================================================
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 📜 Arranges items in a 2-column grid.
 
         TextView categoryText = findViewById(R.id.categoryText); // 🏷️ TextView to show selected category name.
 
