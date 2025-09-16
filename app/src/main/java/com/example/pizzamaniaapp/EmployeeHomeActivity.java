@@ -1,5 +1,7 @@
 package com.example.pizzamaniaapp;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -9,6 +11,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -19,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -64,6 +68,33 @@ public class EmployeeHomeActivity extends AppCompatActivity {
         // Show loading dialog initially
         showLoadingDialog("Loading orders...");
         loadOrders();  // Start loading orders from Firebase
+
+        // -------------------- Order History --------------------
+        ImageButton orderButton = findViewById(R.id.orderButton);
+        orderButton.setOnClickListener(v -> {
+            Intent intent = new Intent(EmployeeHomeActivity.this, EmployeeOrderActivity.class);
+            startActivity(intent);
+        });
+
+
+        // -------------------- Log Out Button --------------------
+        ImageButton LogoutButton = findViewById(R.id.LogoutButton);
+        LogoutButton.setOnClickListener(v -> {
+            // 1. Try sign out from FirebaseAuth (only works if current user is FirebaseAuth user)
+            FirebaseAuth.getInstance().signOut();
+
+            // 2. Clear session data in SharedPreferences
+            SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.apply();
+
+            // 3. Redirect user back to LoginActivity
+            Intent intent = new Intent(EmployeeHomeActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        });
     }
 
     // Create Firebase listener to load and filter orders
