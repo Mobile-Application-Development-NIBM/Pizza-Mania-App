@@ -3,9 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@android:color/white"
-    android:layout_marginBottom="8dp"
+    android:padding="12dp"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/card_background"
+    android:gravity="start"
     android:elevation="2dp">
 
     <!-- Customer Name -->
@@ -17,33 +18,35 @@
         android:textColor="#000000"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="6dp" />
 
     <!-- Ordered Items -->
     <TextView
         android:id="@+id/tvItems"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Ordered Items"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
+        android:textColor="#444444"
+        android:textSize="15sp"
+        android:layout_marginBottom="6dp" />
 
     <!-- Payment Status -->
     <TextView
         android:id="@+id/tvPaymentStatus"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Payment Status"
-        android:textSize="16sp"
-        android:layout_marginBottom="12dp"/>
+        android:textColor="#000000"
+        android:textSize="15sp"
+        android:layout_marginBottom="10dp" />
 
     <!-- Order Status Spinner -->
     <Spinner
         android:id="@+id/spinnerStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"/>
+        android:backgroundTint="#111111"
+        android:layout_marginBottom="12dp" />
 
     <!-- Update Button -->
     <Button
@@ -51,5 +54,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Update Status"
-        android:textAllCaps="false"/>
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#000000" />
 </LinearLayout>
