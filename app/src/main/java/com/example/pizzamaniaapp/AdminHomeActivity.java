@@ -99,6 +99,7 @@ package com.example.pizzamaniaapp; // Package name of the app
 
 // -------- Android Core Imports --------
 import android.content.Intent; // Used to switch between activities
+import android.content.SharedPreferences;
 import android.os.Bundle; // Holds saved instance state for activities
 import android.os.CountDownTimer; // Provides countdown functionality (used for toast auto-dismiss)
 import android.util.Log; // Logging for debugging
@@ -132,6 +133,7 @@ import com.google.android.material.chip.Chip; // UI chip element (small tag-like
 import com.google.android.material.chip.ChipGroup; // Container for chips
 
 // -------- Firebase --------
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot; // Snapshot of Firebase data
 import com.google.firebase.database.DatabaseError; // Error handling for Firebase DB
 import com.google.firebase.database.DatabaseReference; // Reference to a location in Firebase DB
@@ -220,6 +222,25 @@ public class AdminHomeActivity extends AppCompatActivity { // Main admin home ac
             // open AdminDeliverymanManagement
             Intent intent = new Intent(AdminHomeActivity.this, AdminDeliverymanManagement.class);
             startActivity(intent);
+        });
+
+        // -------------------- Log out button --------------------
+        ImageButton LogoutButtonButton = findViewById(R.id.LogoutButtonButton);
+        LogoutButtonButton.setOnClickListener(v -> {
+            // 1. Try sign out from FirebaseAuth (only works if current user is FirebaseAuth user)
+            FirebaseAuth.getInstance().signOut();
+
+            // 2. Clear session data in SharedPreferences
+            SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.apply();
+
+            // 3. Redirect user back to LoginActivity
+            Intent intent = new Intent(AdminHomeActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
         });
 
     }

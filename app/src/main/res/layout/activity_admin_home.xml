@@ -36,11 +36,11 @@
                 android:layout_weight="1" />
 
             <ImageButton
-                android:id="@+id/profileButton"
+                android:id="@+id/LogoutButtonButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical|end"
-                android:src="@drawable/default_profile15"
+                android:src="@drawable/ic_logout"
                 android:background="@null"
                 android:scaleType="centerCrop"
                 android:adjustViewBounds="true"
