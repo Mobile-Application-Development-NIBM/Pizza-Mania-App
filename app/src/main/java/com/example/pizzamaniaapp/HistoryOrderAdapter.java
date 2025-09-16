@@ -4,25 +4,22 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-
 import java.util.List;
-
-import de.hdodenhof.circleimageview.CircleImageView;
 
 public class HistoryOrderAdapter extends RecyclerView.Adapter<HistoryOrderAdapter.HistoryOrderViewHolder> {
 
     private Context context;
-    private List<Item> items;
+    private List<Order> orderList;
 
-    public HistoryOrderAdapter(Context context, List<Item> items) {
+    public HistoryOrderAdapter(Context context, List<Order> orderList) {
         this.context = context;
-        this.items = items;
+        this.orderList = orderList;
     }
 
     @NonNull
@@ -34,35 +31,37 @@ public class HistoryOrderAdapter extends RecyclerView.Adapter<HistoryOrderAdapte
 
     @Override
     public void onBindViewHolder(@NonNull HistoryOrderViewHolder holder, int position) {
-        Item item = items.get(position);
+        Order order = orderList.get(position);
+        holder.tvCustomerName.setText(order.getCustomerName());
 
-        holder.itemName.setText(item.getName());
-        holder.itemQuantity.setText("Qty: " + item.getQuantity());
-        holder.itemPrice.setText("Price: " + item.getPrice());
-        holder.itemTotalPrice.setText("Total: " + (item.getPrice() * item.getQuantity()));
+        StringBuilder details = new StringBuilder();
+        details.append("Branch: ").append(order.getBranchID()).append("\n");
+        details.append("Items: ").append(order.getItems().size()).append("\n");
+        for (Item item : order.getItems()) {
+            details.append("- ").append(item.getName())
+                    .append(" x").append(item.getQuantity()).append("\n");
+        }
+        details.append("Status: ").append(order.getStatus()).append("\n");
+        details.append("Total: Rs. ").append(order.getTotalPrice());
 
-        Glide.with(context)
-                .load(item.getImageURL())
-                .placeholder(R.drawable.ic_launcher_background)
-                .into(holder.itemImage);
+        holder.tvItems.setText(details.toString());
+
+
     }
 
     @Override
     public int getItemCount() {
-        return items.size();
+        return orderList.size();
     }
 
-    public static class HistoryOrderViewHolder extends RecyclerView.ViewHolder {
-        CircleImageView itemImage;
-        TextView itemName, itemQuantity, itemPrice, itemTotalPrice;
+    static class HistoryOrderViewHolder extends RecyclerView.ViewHolder {
+        TextView tvCustomerName, tvItems;
 
         public HistoryOrderViewHolder(@NonNull View itemView) {
             super(itemView);
-            itemImage = itemView.findViewById(R.id.itemImage);
-            itemName = itemView.findViewById(R.id.itemName);
-            itemQuantity = itemView.findViewById(R.id.itemQuantity);
-            itemPrice = itemView.findViewById(R.id.itemPrice);
-            itemTotalPrice = itemView.findViewById(R.id.itemTotalPrice);
+            tvCustomerName = itemView.findViewById(R.id.tvCustomerName);
+            tvItems = itemView.findViewById(R.id.tvItems);
+            ;
         }
     }
 }
