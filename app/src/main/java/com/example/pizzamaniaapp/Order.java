@@ -10,7 +10,7 @@ public class Order {
     private String customerName;
     private long deliveredTimestamp;
     private double totalPrice;
-    private String status;          // ✅ order-level status
+    private String status;          //  order-level status
     private List<Item> items;
 
     // Firebase key (not stored in DB)

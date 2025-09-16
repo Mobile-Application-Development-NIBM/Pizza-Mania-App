@@ -68,7 +68,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                         .append("\n");
             }
 
-            // ✅ Use order-level status
+            //  Use order-level status
             String status = order.getStatus();
             itemsDetails.append("Status: ").append(status != null ? status : "N/A").append("\n");
 

@@ -5,7 +5,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +12,6 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -32,50 +30,53 @@ import java.util.List;
 
 public class EmployeeHomeActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerOrders;
-    private List<Order> orderList;
-    private OrderAdapter adapter;
-    private DatabaseReference ordersRef;
-    private ValueEventListener ordersListener;
-    private Handler handler = new Handler();
-    private AlertDialog loadingDialog; // ⏳ Loading dialog
-    private String currentBranchID; // 🌍 Moved to a class variable
-    private Runnable pendingRefreshRunnable; // 🏃 Holds the pending refresh task
+    private RecyclerView recyclerOrders;        // RecyclerView to show the list of orders
+    private List<Order> orderList;              // Stores all orders for this branch
+    private OrderAdapter adapter;               // Adapter to bind data to RecyclerView
+    private DatabaseReference ordersRef;        // Firebase reference to "orders" node
+    private ValueEventListener ordersListener;  // Listener to update UI when data changes
+    private Handler handler = new Handler();    // Used for delayed actions
+    private AlertDialog loadingDialog;          // Custom loading dialog
+    private String currentBranchID;             // Current logged-in employee’s branch ID
+    private Runnable pendingRefreshRunnable;    // Holds delayed refresh task
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_employee_home);
 
-        recyclerOrders = findViewById(R.id.recyclerOrders);
-        recyclerOrders.setLayoutManager(new LinearLayoutManager(this));
+        recyclerOrders = findViewById(R.id.recyclerOrders);  // Link RecyclerView from layout
+        recyclerOrders.setLayoutManager(new LinearLayoutManager(this)); // Vertical list
 
         orderList = new ArrayList<>();
-        ordersRef = FirebaseDatabase.getInstance().getReference("orders");
+        ordersRef = FirebaseDatabase.getInstance().getReference("orders"); // Connect to Firebase node "orders"
 
+        // Set up adapter with order list and a callback for updating status
         adapter = new OrderAdapter(this, orderList, (order, newStatus) -> {
-            updateOrderStatus(order, newStatus);
+            updateOrderStatus(order, newStatus);  // Call update method when status changes
         });
         recyclerOrders.setAdapter(adapter);
 
-        // Get the branch ID once
-        currentBranchID = getSharedPreferences("MyAppPrefs", MODE_PRIVATE).getString("branchID", null);
+        // Get branch ID saved in SharedPreferences
+        currentBranchID = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+                .getString("branchID", null);
 
-        // Show loading when opening
+        // Show loading dialog initially
         showLoadingDialog("Loading orders...");
-        loadOrders();
+        loadOrders();  // Start loading orders from Firebase
     }
 
-    // Create a listener that can be attached/removed
+    // Create Firebase listener to load and filter orders
     private void createOrdersListener() {
         ordersListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                orderList.clear();
+                orderList.clear();  // Clear old list before refreshing
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Order order = dataSnapshot.getValue(Order.class);
                     if (order != null) {
-                        order.setOrderId(dataSnapshot.getKey());
+                        order.setOrderId(dataSnapshot.getKey());  // Attach Firebase key as ID
+                        // Show only orders for this branch and only in certain statuses
                         if (currentBranchID != null && currentBranchID.equals(order.getBranchID()) &&
                                 ("confirm order".equalsIgnoreCase(order.getStatus()) ||
                                         "Preparing".equalsIgnoreCase(order.getStatus()) ||
@@ -84,18 +85,19 @@ public class EmployeeHomeActivity extends AppCompatActivity {
                         }
                     }
                 }
-                adapter.notifyDataSetChanged();
-                hideLoadingDialog();
+                adapter.notifyDataSetChanged(); // Update RecyclerView
+                hideLoadingDialog();            // Hide loading after done
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                showCustomToast("Failed to load orders");
+                showCustomToast("Failed to load orders"); // Error handling
                 hideLoadingDialog();
             }
         };
     }
 
+    // Attach listener to Firebase and start listening
     private void loadOrders() {
         if (currentBranchID == null || currentBranchID.isEmpty()) {
             showCustomToast("Branch not set! Cannot load orders.");
@@ -103,12 +105,12 @@ public class EmployeeHomeActivity extends AppCompatActivity {
             return;
         }
 
-        // Remove previous listener to prevent duplication
+        // Remove old listener if already attached
         if (ordersListener != null) {
             ordersRef.removeEventListener(ordersListener);
         }
 
-        // Add the listener back to start listening for changes
+        // Create and attach new listener
         createOrdersListener();
         ordersRef.addValueEventListener(ordersListener);
     }
@@ -116,7 +118,7 @@ public class EmployeeHomeActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Always remove the listener and pending callbacks to prevent memory leaks
+        // Remove Firebase listener and pending tasks to avoid memory leaks
         if (ordersListener != null) {
             ordersRef.removeEventListener(ordersListener);
         }
@@ -125,50 +127,51 @@ public class EmployeeHomeActivity extends AppCompatActivity {
         }
     }
 
+    // Update order status in Firebase
     private void updateOrderStatus(Order order, String newStatus) {
         if (order == null) return;
 
-        // 🛑 Cancel any existing pending refresh before proceeding
+        // Cancel any delayed refresh if exists
         if (pendingRefreshRunnable != null) {
             handler.removeCallbacks(pendingRefreshRunnable);
             pendingRefreshRunnable = null;
         }
 
-        // Temporarily remove the listener before the update
+        // Temporarily remove listener to prevent duplicate events
         if (ordersListener != null) {
             ordersRef.removeEventListener(ordersListener);
         }
 
+        // Update the status field in Firebase
         ordersRef.child(order.getOrderId())
                 .child("status")
                 .setValue(newStatus)
                 .addOnSuccessListener(aVoid -> {
                     if ("Delivery Pending".equalsIgnoreCase(newStatus)) {
-                        // 1. Show custom message
+                        // If status = Delivery Pending, show message and refresh after 15s
                         showCustomToast("Order will disappear in 15 seconds...");
 
-                        // 2. Define the runnable and post it
                         pendingRefreshRunnable = () -> {
                             showLoadingDialog("Refreshing orders...");
                             loadOrders();
-                            pendingRefreshRunnable = null; // Clear the runnable after it's executed
+                            pendingRefreshRunnable = null; // Clear task
                         };
-                        handler.postDelayed(pendingRefreshRunnable, 15000); // ⏳ 15 seconds delay
+                        handler.postDelayed(pendingRefreshRunnable, 15000); // Delay refresh
                     } else {
-                        // For all other status updates, re-attach the listener immediately
+                        // For other statuses, refresh immediately
                         showCustomToast("Status Updated Successfully");
                         loadOrders();
                     }
                 })
                 .addOnFailureListener(e -> {
                     showCustomToast("Update Failed: " + e.getMessage());
-                    // If update fails, re-attach the listener
-                    loadOrders();
+                    loadOrders(); // Re-attach listener if failed
                 });
     }
 
-    // ---------------- LOADING & TOAST ----------------
+    // LOADING & TOAST
 
+    // Show custom loading dialog
     private void showLoadingDialog(String message) {
         if (loadingDialog != null && loadingDialog.isShowing()) return;
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null);
@@ -184,10 +187,12 @@ public class EmployeeHomeActivity extends AppCompatActivity {
         }
     }
 
+    // Hide loading dialog
     private void hideLoadingDialog() {
         if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
     }
 
+    // Show custom toast-like message at top with progress bar
     private void showCustomToast(String message) {
         View layout = LayoutInflater.from(this).inflate(R.layout.custom_message, null);
         TextView toastMessage = layout.findViewById(R.id.toast_message);
@@ -198,19 +203,20 @@ public class EmployeeHomeActivity extends AppCompatActivity {
         progressBar.setProgress(100);
 
         AlertDialog dialog = new AlertDialog.Builder(this).setView(layout).create();
-        close.setOnClickListener(v -> dialog.dismiss());
+        close.setOnClickListener(v -> dialog.dismiss()); // Close button
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.getWindow().setDimAmount(0f);
+            dialog.getWindow().setDimAmount(0f); // No background dim
             WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
             params.width = WindowManager.LayoutParams.MATCH_PARENT;
             params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-            params.gravity = Gravity.TOP;
+            params.gravity = Gravity.TOP; // Appear at top of screen
             params.y = 50;
             dialog.getWindow().setAttributes(params);
         }
         dialog.show();
 
+        // Auto dismiss after 3 seconds with progress animation
         new CountDownTimer(3000, 50) {
             public void onTick(long millisUntilFinished) {
                 int progress = (int) Math.max(0, Math.round((millisUntilFinished / 3000.0) * 100));
