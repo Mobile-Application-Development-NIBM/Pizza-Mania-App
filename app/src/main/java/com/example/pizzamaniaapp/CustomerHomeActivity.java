@@ -364,6 +364,13 @@ public class CustomerHomeActivity extends AppCompatActivity {
             Intent intent = new Intent(CustomerHomeActivity.this, AccountActivity.class);
             startActivity(intent);
         });
+
+        // -------------------- Order History --------------------
+        ImageButton orderButton = findViewById(R.id.orderButton);
+        orderButton.setOnClickListener(v -> {
+            Intent intent = new Intent(CustomerHomeActivity.this, HistoryOrderActivity.class);
+            startActivity(intent);
+        });
     }
 
     // -------------------- UPDATE CART BADGE --------------------
