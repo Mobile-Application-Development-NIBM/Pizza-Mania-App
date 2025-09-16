@@ -3,18 +3,19 @@ package com.example.pizzamaniaapp;
 import java.util.List;
 
 public class Order {
-    private String branchID;
-    private String customerID;
-    private double customerLat;
-    private double customerLng;
-    private String customerName;
-    private long deliveredTimestamp;
-    private double totalPrice;
-    private String status;          // ✅ order-level status
-    private List<Item> items;
-
-    // Firebase key (not stored in DB)
-    private String orderId;
+    public String orderID;
+    public String branchID;
+    public String customerID;
+    public String customerName;
+    public double customerLat;
+    public double customerLng;
+    public String assignedDeliverymanID;
+    public String status;
+    public double totalPrice;
+    public long timestamp;
+    public long deliveredTimestamp;
+    public String paymentStatus;
+    public List<Item> items;
 
     public Order() {}
 
@@ -45,6 +46,6 @@ public class Order {
     public List<Item> getItems() { return items; }
     public void setItems(List<Item> items) { this.items = items; }
 
-    public String getOrderId() { return orderId; }
-    public void setOrderId(String orderId) { this.orderId = orderId; }
+    public String getOrderID() { return orderID; }
+    public void setOrderID(String orderId) { this.orderID = orderId; }
 }

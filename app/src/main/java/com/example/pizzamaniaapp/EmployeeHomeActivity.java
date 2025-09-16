@@ -75,7 +75,7 @@ public class EmployeeHomeActivity extends AppCompatActivity {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Order order = dataSnapshot.getValue(Order.class);
                     if (order != null) {
-                        order.setOrderId(dataSnapshot.getKey());
+                        order.setOrderID(dataSnapshot.getKey());
                         if (currentBranchID != null && currentBranchID.equals(order.getBranchID()) &&
                                 ("confirm order".equalsIgnoreCase(order.getStatus()) ||
                                         "Preparing".equalsIgnoreCase(order.getStatus()) ||
@@ -139,7 +139,7 @@ public class EmployeeHomeActivity extends AppCompatActivity {
             ordersRef.removeEventListener(ordersListener);
         }
 
-        ordersRef.child(order.getOrderId())
+        ordersRef.child(order.getOrderID())
                 .child("status")
                 .setValue(newStatus)
                 .addOnSuccessListener(aVoid -> {
